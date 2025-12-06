@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>六爻天机 - 真人大师亲算</title>
+    <title>六爻天机 - I Ching Divination</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
@@ -12,9 +12,11 @@
     <script src="https://unpkg.com/lunar-javascript@1.6.12/lunar.js"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- 不蒜子统计 -->
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;700&family=Ma+Shan+Zheng&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;700&family=Ma+Shan+Zheng&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
         
         :root {
             --paper-bg: #f7f5f0;
@@ -25,7 +27,7 @@
         }
 
         body {
-            font-family: 'Noto Serif SC', serif;
+            font-family: 'Noto Serif SC', 'Crimson Text', serif; /* 中西文混排字体优化 */
             background-color: var(--paper-bg);
             color: var(--ink-color);
             background-image: 
@@ -38,7 +40,6 @@
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
         /* 卦爻样式 */
-        .ink-stroke { border-radius: 2px; }
         .yang-stroke { 
             height: 12px; width: 100%; 
             background: linear-gradient(90deg, #c0392b, #a93226, #c0392b);
@@ -83,14 +84,13 @@
         }
         .btn-shake { animation: pulse-shadow 2s infinite; }
 
-        /* 动效类 */
+        /* 动效与卡片 */
         .fade-enter-active, .fade-leave-active { transition: opacity 0.4s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
         .slide-up-enter-active { transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .slide-up-enter-from { opacity: 0; transform: translateY(30px); }
         .slide-up-enter-to { opacity: 1; transform: translateY(0); }
 
-        /* 卡片玻璃态 */
         .glass-card {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
@@ -99,7 +99,7 @@
             box-shadow: 0 8px 32px -8px rgba(0,0,0,0.05);
         }
 
-        /* Toast 提示 */
+        /* Toast */
         .toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
         .toast-enter-from, .toast-leave-to { transform: translateY(-100%); opacity: 0; }
         .toast-enter-to, .toast-leave-from { transform: translateY(0); opacity: 1; }
@@ -109,7 +109,7 @@
 
 <div id="app" class="w-full h-full flex flex-col relative max-w-md mx-auto shadow-2xl bg-white/30">
 
-    <!-- 全局 Toast 提示 -->
+    <!-- 全局 Toast -->
     <transition name="toast">
         <div v-if="toast.show" class="absolute top-0 left-0 right-0 z-50 p-4 flex justify-center">
             <div class="bg-stone-800 text-white px-4 py-2 rounded-full shadow-lg text-sm flex items-center gap-2">
@@ -121,10 +121,20 @@
     </transition>
 
     <!-- Header -->
-    <header class="h-14 flex items-center justify-center px-4 shrink-0 z-10 pt-2 bg-white/40 backdrop-blur-sm border-b border-stone-200/50">
+    <header class="h-14 flex items-center justify-between px-4 shrink-0 z-10 pt-2 bg-white/40 backdrop-blur-sm border-b border-stone-200/50">
+        <!-- 占位，保持标题居中 -->
+        <div class="w-8"></div>
+        
         <div class="flex flex-col items-center">
-            <h1 class="font-serif font-bold text-lg tracking-[0.3em] text-[#a93226]" style="font-family: 'Ma Shan Zheng', cursive;">六爻天机</h1>
+            <h1 class="font-serif font-bold text-lg tracking-[0.2em] text-[#a93226]" style="font-family: 'Ma Shan Zheng', cursive;">
+                {{ t('app_title') }}
+            </h1>
         </div>
+
+        <!-- 语言切换按钮 -->
+        <button @click="toggleLang" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-200/50 transition text-stone-600">
+            <i class="ph ph-globe text-xl"></i>
+        </button>
     </header>
 
     <!-- Main Content -->
@@ -137,24 +147,31 @@
                     <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-stone-100 to-white shadow-inner border border-stone-200 mb-2">
                         <i class="ph ph-hands-praying text-3xl text-stone-600"></i>
                     </div>
-                    <h2 class="text-2xl font-bold text-stone-800 tracking-wide">诚心求占</h2>
-                    <p class="text-stone-500 text-xs tracking-widest uppercase">DIVINATION</p>
+                    <h2 class="text-2xl font-bold text-stone-800 tracking-wide">{{ t('step1_title') }}</h2>
+                    <p class="text-stone-500 text-xs tracking-widest uppercase">{{ t('step1_subtitle') }}</p>
                 </div>
 
                 <div class="w-full space-y-6 flex-1">
                     <div class="relative group">
-                        <textarea v-model="question" rows="4" placeholder="请默念您的问题...&#10;例如：近期事业发展有无阻碍？" 
+                        <textarea v-model="question" rows="4" :placeholder="t('step1_placeholder')" 
                             class="w-full p-5 bg-white/80 border border-stone-200 rounded-2xl focus:outline-none focus:border-[#a93226] focus:ring-4 focus:ring-[#a93226]/10 transition resize-none shadow-sm text-stone-700 text-lg leading-relaxed placeholder-stone-400"></textarea>
                     </div>
                     
                     <button @click="nextStep" :disabled="!question.trim()"
                         class="w-full py-4 bg-[#2c2c2c] text-[#f7f5f0] rounded-xl font-bold text-lg shadow-xl hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3">
-                        <span>开始起卦</span>
+                        <span>{{ t('btn_start') }}</span>
                         <i class="ph ph-arrow-right"></i>
                     </button>
                     
-                    <div class="text-center mt-4">
-                         <p class="text-[10px] text-stone-400">* 心诚则灵，无事不占</p>
+                    <div class="text-center mt-4 space-y-2">
+                         <p class="text-[10px] text-stone-400">{{ t('step1_footer') }}</p>
+                         
+                         <!-- 不蒜子 -->
+                         <div class="text-[10px] text-stone-300 font-mono mt-4">
+                            <span id="busuanzi_container_site_pv" style="display:none">
+                                {{ t('visits') }} <span id="busuanzi_value_site_pv"></span>
+                            </span>
+                         </div>
                     </div>
                 </div>
             </div>
@@ -162,7 +179,7 @@
             <!-- Phase 2: 摇卦 -->
             <div v-else-if="step === 2" key="step2" class="h-full flex flex-col">
                 <div class="text-center mb-8 animate-fade-in">
-                    <div class="text-[10px] text-stone-400 uppercase tracking-widest mb-2">QUESTION</div>
+                    <div class="text-[10px] text-stone-400 uppercase tracking-widest mb-2">{{ t('label_question') }}</div>
                     <div class="font-serif font-bold text-lg text-stone-800 px-4 leading-relaxed line-clamp-2">{{ question }}</div>
                     <div class="w-12 h-px bg-stone-200 mx-auto mt-4"></div>
                 </div>
@@ -171,7 +188,7 @@
                     <div class="h-24 flex items-center justify-center gap-6 perspective-1000 w-full">
                         <div v-for="c in 3" :key="c" class="coin transform transition-all" :class="{'animate-toss': isShaking}">
                             <div class="coin-text" :class="lastCoins[c-1] === 3 ? 'top-[42%] left-[45%]' : 'top-[10%] left-[30%]'">
-                                <span v-if="!isShaking && lastCoins[c-1] === 2" class="text-sm scale-90 block">字</span>
+                                <span v-if="!isShaking && lastCoins[c-1] === 2" class="text-sm scale-90 block">{{ t('coin_yang') }}</span>
                                 <i v-if="!isShaking && lastCoins[c-1] === 3" class="ph ph-flower-lotus text-xs opacity-60"></i>
                             </div>
                         </div>
@@ -184,7 +201,9 @@
                                 :class="{'btn-shake': !isShaking && inputLines.length < 6}">
                                 <div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <i class="ph ph-hand-waving text-3xl mb-1 group-hover:rotate-12 transition-transform"></i>
-                                <span class="text-sm font-medium tracking-widest">{{ inputLines.length < 6 ? '摇卦' : '完成' }}</span>
+                                <span class="text-sm font-medium tracking-widest">
+                                    {{ inputLines.length < 6 ? t('btn_shake') : t('btn_finish') }}
+                                </span>
                             </button>
                         </div>
                         <div class="space-y-3">
@@ -203,7 +222,7 @@
                 
                 <div class="flex flex-col items-center justify-center pt-2">
                     <div class="text-sm text-stone-600 font-bold font-mono tracking-wide">{{ lunarInfo.dateStr }}</div>
-                    <div class="text-[10px] text-stone-400 font-mono mt-1">空亡: {{ lunarInfo.kongWang }} | 公历: {{ lunarInfo.solarTime }}</div>
+                    <div class="text-[10px] text-stone-400 font-mono mt-1">{{ t('label_void') }}: {{ lunarInfo.kongWang }} | {{ t('label_solar') }}: {{ lunarInfo.solarTime }}</div>
                 </div>
 
                 <!-- 1. 本卦卡片 -->
@@ -215,17 +234,19 @@
                             <div>
                                 <span class="text-[10px] text-stone-400 block mb-1 uppercase tracking-wider">Present</span>
                                 <h3 class="text-2xl font-bold text-[#a93226]">{{ currentChart.main.name }}</h3>
-                                <span class="text-xs text-stone-500 bg-stone-100/50 px-2 py-0.5 rounded-full mt-1 inline-block">{{ currentChart.main.palace }}宫 · {{ currentChart.main.element }}</span>
+                                <span class="text-xs text-stone-500 bg-stone-100/50 px-2 py-0.5 rounded-full mt-1 inline-block">
+                                    {{ currentChart.main.palace }}{{ t('label_palace') }} · {{ translateTerm(currentChart.main.element) }}
+                                </span>
                             </div>
-                            <div class="text-4xl text-stone-100 font-serif absolute right-4 top-2 select-none" style="font-family: 'Ma Shan Zheng'">本</div>
+                            <div class="text-4xl text-stone-100 font-serif absolute right-4 top-2 select-none" style="font-family: 'Ma Shan Zheng'">{{ t('label_main_bg') }}</div>
                         </div>
 
                         <div class="space-y-2.5 relative z-10">
                             <div v-for="line in currentChart.main.lines" :key="'main-'+line.index" class="flex items-center text-sm h-8 group">
-                                <div class="w-8 text-stone-400 text-[11px] text-center scale-90">{{ line.beast }}</div>
-                                <div class="w-10 font-bold text-xs text-center" :class="getRelationClass(line.relation)">{{ line.relation }}</div>
-                                <div class="w-14 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ line.wuxing }}</div>
-                                <div class="flex-1 px-3 flex items-center">
+                                <div class="w-12 text-stone-400 text-[10px] text-center scale-95">{{ translateTerm(line.beast) }}</div>
+                                <div class="w-12 font-bold text-xs text-center scale-95" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
+                                <div class="w-14 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
+                                <div class="flex-1 px-2 flex items-center">
                                     <div v-if="line.isYang" class="yang-stroke relative transition-all group-hover:brightness-110">
                                         <div v-if="line.isMoving" class="absolute -right-1.5 -top-1 w-2 h-2 rounded-full bg-[#a93226] animate-pulse"></div>
                                     </div>
@@ -236,8 +257,8 @@
                                     </div>
                                 </div>
                                 <div class="w-6 text-[10px] font-bold text-center">
-                                    <span v-if="line.shi" class="text-white bg-[#a93226] px-1 rounded shadow-sm">世</span>
-                                    <span v-if="line.ying" class="text-[#a93226] border border-[#a93226] px-0.5 rounded">应</span>
+                                    <span v-if="line.shi" class="text-white bg-[#a93226] px-1 rounded shadow-sm">{{ t('label_shi') }}</span>
+                                    <span v-if="line.ying" class="text-[#a93226] border border-[#a93226] px-0.5 rounded">{{ t('label_ying') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -258,17 +279,17 @@
                             <div>
                                 <span class="text-[10px] text-stone-400 block mb-1 uppercase tracking-wider">Future</span>
                                 <h3 class="text-2xl font-bold text-stone-700">{{ currentChart.changed.name }}</h3>
-                                <span class="text-xs text-stone-500 bg-stone-100/50 px-2 py-0.5 rounded-full mt-1 inline-block">变卦 · 趋势</span>
+                                <span class="text-xs text-stone-500 bg-stone-100/50 px-2 py-0.5 rounded-full mt-1 inline-block">{{ t('label_change_trend') }}</span>
                             </div>
-                            <div class="text-4xl text-stone-100 font-serif absolute right-4 top-2 select-none" style="font-family: 'Ma Shan Zheng'">变</div>
+                            <div class="text-4xl text-stone-100 font-serif absolute right-4 top-2 select-none" style="font-family: 'Ma Shan Zheng'">{{ t('label_change_bg') }}</div>
                         </div>
 
                         <div class="space-y-2.5 relative z-10">
                             <div v-for="line in currentChart.changed.lines" :key="'changed-'+line.index" class="flex items-center text-sm h-8 opacity-90 group">
-                                <div class="w-8 text-stone-400 text-[11px] text-center scale-90">{{ line.beast }}</div>
-                                <div class="w-10 font-bold text-xs text-center" :class="getRelationClass(line.relation)">{{ line.relation }}</div>
-                                <div class="w-14 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ line.wuxing }}</div>
-                                <div class="flex-1 px-3 flex items-center">
+                                <div class="w-12 text-stone-400 text-[10px] text-center scale-95">{{ translateTerm(line.beast) }}</div>
+                                <div class="w-12 font-bold text-xs text-center scale-95" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
+                                <div class="w-14 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
+                                <div class="flex-1 px-2 flex items-center">
                                     <div v-if="line.isYang" class="yang-stroke bg-stone-500 !bg-none !box-shadow-none bg-stone-600"></div>
                                     <div v-else class="yin-stroke-wrapper">
                                         <div class="yin-stroke bg-stone-500 !bg-none !box-shadow-none bg-stone-600"></div>
@@ -283,7 +304,7 @@
 
                 <!-- 无变卦 -->
                 <div v-else class="text-center py-4 opacity-50">
-                    <span class="text-xs text-stone-400 border border-stone-200 px-3 py-1 rounded-full">六爻安静，以本卦断吉凶</span>
+                    <span class="text-xs text-stone-400 border border-stone-200 px-3 py-1 rounded-full">{{ t('label_no_change') }}</span>
                 </div>
 
                 <!-- 邀请函 (双通道引流) -->
@@ -292,11 +313,11 @@
                         <div class="relative z-10">
                             <h3 class="text-lg font-bold text-[#14532d] mb-2 flex items-center justify-center gap-2">
                                 <i class="ph ph-chat-circle-dots text-xl"></i>
-                                <span>大师详批通道</span>
+                                <span>{{ t('cta_title') }}</span>
                             </h3>
                             <p class="text-xs text-[#166534] leading-relaxed opacity-90 px-2 mb-4">
-                                天机深奥，需结合流年神煞。<br>
-                                请选择下方任一方式联系大师。
+                                {{ t('cta_desc_1') }}<br>
+                                {{ t('cta_desc_2') }}
                             </p>
 
                             <!-- 按钮组 -->
@@ -312,14 +333,14 @@
                                 <button @click="contactWeChat"
                                     class="relative w-full py-3 bg-[#07C160] hover:bg-[#06ad56] text-white rounded-xl font-bold text-sm shadow-md active:translate-y-0.5 transition-all flex flex-col items-center justify-center gap-1">
                                     <i class="ph ph-wechat-logo text-2xl"></i>
-                                    <span>微信联系</span>
+                                    <span>{{ t('btn_wechat') }}</span>
                                 </button>
                             </div>
                             
                             <!-- 微信辅助信息 -->
                             <div class="text-[10px] text-[#166534] mt-3 bg-white/40 rounded-lg p-2 inline-block">
-                                大师微信号: <span class="font-mono font-bold select-all">{{ MY_WECHAT_ID }}</span>
-                                <span @click="copyWeChatIDOnly" class="ml-2 underline cursor-pointer text-[#07C160]">复制</span>
+                                {{ t('label_wechat_id') }}: <span class="font-mono font-bold select-all">{{ MY_WECHAT_ID }}</span>
+                                <span @click="copyWeChatIDOnly" class="ml-2 underline cursor-pointer text-[#07C160]">{{ t('btn_copy') }}</span>
                             </div>
                         </div>
                     </div>
@@ -328,7 +349,7 @@
                 <div class="text-center pt-2 pb-6">
                     <button @click="resetAll" class="text-xs text-stone-400 hover:text-stone-600 flex items-center justify-center gap-1.5 mx-auto px-4 py-2 hover:bg-stone-100 rounded-full transition-colors">
                         <i class="ph ph-arrow-counter-clockwise"></i>
-                        <span>重新起卦</span>
+                        <span>{{ t('btn_restart') }}</span>
                     </button>
                 </div>
 
@@ -339,12 +360,103 @@
 </div>
 
 <script>
-    const { createApp, ref, reactive } = Vue;
+    const { createApp, ref, reactive, computed } = Vue;
 
     // --- ⬇️ 请配置联系方式 ⬇️ ---
     const MY_WHATSAPP_NUMBER = "8615382537862"; 
-    const MY_WECHAT_ID = "Nobebaelaguaporfavor"; // 请替换为您的微信号
+    const MY_WECHAT_ID = "Nobebaelaguaporfavor"; 
     // --------------------------
+
+    // --- I18n Data ---
+    const messages = {
+        zh: {
+            app_title: "六爻天机",
+            step1_title: "诚心求占",
+            step1_subtitle: "DIVINATION",
+            step1_placeholder: "请默念您的问题...\n例如：近期事业发展有无阻碍？",
+            btn_start: "开始起卦",
+            step1_footer: "* 心诚则灵，无事不占",
+            visits: "累计访问",
+            label_question: "所占之事",
+            coin_yang: "字",
+            btn_shake: "摇卦",
+            btn_finish: "完成",
+            label_void: "空亡",
+            label_solar: "公历",
+            label_palace: "宫",
+            label_main_bg: "本",
+            label_shi: "世",
+            label_ying: "应",
+            label_change_trend: "变卦 · 趋势",
+            label_change_bg: "变",
+            label_no_change: "六爻安静，以本卦断吉凶",
+            cta_title: "大师详批通道",
+            cta_desc_1: "天机深奥，需结合流年神煞。",
+            cta_desc_2: "请选择下方任一方式联系大师。",
+            btn_wechat: "微信联系",
+            label_wechat_id: "大师微信号",
+            btn_copy: "复制",
+            btn_restart: "重新起卦",
+            toast_copy_success: "卦象已复制！正在打开微信...",
+            toast_wechat_copy: "微信号已复制！",
+            toast_fail: "复制失败",
+            msg_intro: "大师您好，我诚心求测。",
+            msg_q: "【问题】",
+            msg_t: "【时间】",
+            msg_g: "【卦象】",
+            msg_end: "请大师详批。"
+        },
+        en: {
+            app_title: "I Ching Divination",
+            step1_title: "Ask the Oracle",
+            step1_subtitle: "DIVINATION",
+            step1_placeholder: "Meditate on your question...\nEx: Will my career improve soon?",
+            btn_start: "Start",
+            step1_footer: "* Sincerity brings accuracy",
+            visits: "Visits",
+            label_question: "Question",
+            coin_yang: "Head",
+            btn_shake: "Shake",
+            btn_finish: "Finish",
+            label_void: "Void",
+            label_solar: "Solar",
+            label_palace: " Palace",
+            label_main_bg: "Base",
+            label_shi: "Self",
+            label_ying: "Other",
+            label_change_trend: "Change / Trend",
+            label_change_bg: "Chg",
+            label_no_change: "No moving lines. Read the Base Hexagram.",
+            cta_title: "Expert Interpretation",
+            cta_desc_1: "Deep insight requires expert analysis.",
+            cta_desc_2: "Contact Master for a detailed reading.",
+            btn_wechat: "WeChat",
+            label_wechat_id: "WeChat ID",
+            btn_copy: "Copy",
+            btn_restart: "New Divination",
+            toast_copy_success: "Copied! Opening WeChat...",
+            toast_wechat_copy: "ID Copied!",
+            toast_fail: "Copy failed",
+            msg_intro: "Hello Master, I seek a reading.",
+            msg_q: "[Question]",
+            msg_t: "[Time]",
+            msg_g: "[Hexagram]",
+            msg_end: "Please analyze."
+        }
+    };
+
+    // Dictionary for Terminology Translation
+    const terms = {
+        zh: {}, // Chinese doesn't need translation mapping
+        en: {
+            // Wu Xing
+            '金': 'Metal', '木': 'Wood', '水': 'Water', '火': 'Fire', '土': 'Earth',
+            // Liu Qin
+            '父母': 'Parent', '兄弟': 'Sibling', '子孙': 'Offspring', '妻财': 'Wealth', '官鬼': 'Official',
+            // Liu Shen
+            '青龙': 'Dragon', '朱雀': 'Bird', '勾陈': 'Hook', '腾蛇': 'Snake', '白虎': 'Tiger', '玄武': 'Tortoise'
+        }
+    };
 
     // Constants
     const TRIGRAMS = { '111': {name:'乾',element:'金'}, '011': {name:'兑',element:'金'}, '101': {name:'离',element:'火'}, '001': {name:'震',element:'木'}, '110': {name:'巽',element:'木'}, '010': {name:'坎',element:'水'}, '100': {name:'艮',element:'土'}, '000': {name:'坤',element:'土'} };
@@ -356,15 +468,33 @@
 
     createApp({
         setup() {
+            const currentLang = ref('zh'); // 'zh' or 'en'
             const step = ref(1); 
             const question = ref('');
             const inputLines = ref([]);
             const isShaking = ref(false);
             const lastCoins = ref([2,2,2]);
-            const statusText = ref('点击按钮摇卦');
+            const statusText = ref('');
             const currentChart = ref(null);
             const lunarInfo = ref({});
             const toast = reactive({ show: false, message: '', type: 'info' });
+
+            // Helper for UI Text
+            const t = (key) => messages[currentLang.value][key] || key;
+
+            // Helper for Terminology
+            const translateTerm = (term) => {
+                if (currentLang.value === 'zh') return term;
+                return terms.en[term] || term;
+            };
+
+            const toggleLang = () => {
+                currentLang.value = currentLang.value === 'zh' ? 'en' : 'zh';
+                // Update status text if in shaking mode
+                if(step.value === 2 && !isShaking.value && inputLines.value.length === 0) {
+                    statusText.value = currentLang.value === 'zh' ? '点击按钮摇卦' : 'Tap button to shake';
+                }
+            };
 
             const showToast = (msg, type='info') => {
                 toast.message = msg;
@@ -373,12 +503,12 @@
                 setTimeout(() => toast.show = false, 3000);
             };
 
-            const nextStep = () => { if(question.value.trim()) step.value = 2; };
+            const nextStep = () => { if(question.value.trim()) step.value = 2; statusText.value = currentLang.value === 'zh' ? '点击按钮摇卦' : 'Tap button to shake'; };
 
             const shake = () => {
                 if(isShaking.value || inputLines.value.length >= 6) return;
                 isShaking.value = true;
-                statusText.value = '感应中...';
+                statusText.value = currentLang.value === 'zh' ? '感应中...' : 'Divining...';
                 
                 setTimeout(() => {
                     const coins = [0,0,0].map(() => Math.random() > 0.5 ? 2 : 3);
@@ -387,9 +517,12 @@
                     inputLines.value.push(sum);
                     
                     let txt = '';
-                    if(sum===6) txt="老阴 X"; if(sum===7) txt="少阳 |";
-                    if(sum===8) txt="少阴 ||"; if(sum===9) txt="老阳 O";
-                    statusText.value = `第 ${inputLines.value.length} 爻: ${txt}`;
+                    if(sum===6) txt = currentLang.value==='zh' ? "老阴 X" : "Old Yin X"; 
+                    if(sum===7) txt = currentLang.value==='zh' ? "少阳 |" : "Young Yang |";
+                    if(sum===8) txt = currentLang.value==='zh' ? "少阴 ||" : "Young Yin ||"; 
+                    if(sum===9) txt = currentLang.value==='zh' ? "老阳 O" : "Old Yang O";
+                    
+                    statusText.value = `${currentLang.value==='zh'?'第':'Line'} ${inputLines.value.length} ${currentLang.value==='zh'?'爻':''}: ${txt}`;
                     isShaking.value = false;
 
                     if(inputLines.value.length === 6) {
@@ -405,7 +538,6 @@
                 const now = new Date();
                 const lunar = Lunar.fromDate(now);
                 
-                // 更精确的时间计算 (增加时柱)
                 lunarInfo.value = {
                     dateStr: `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日 ${lunar.getTimeInGanZhi()}时`,
                     kongWang: lunar.getDayXunKong(),
@@ -439,42 +571,41 @@
                 };
             };
 
-            // 生成卦象字符画文本
+            // Generate Text for Copy/WhatsApp
             const getChartText = () => {
                 const c = currentChart.value;
-                const changeText = c.hasChange ? `之 ${c.changed.name}` : '(无变卦)';
+                const isZh = currentLang.value === 'zh';
+                const changeText = c.hasChange ? ` -> ${c.changed.name}` : '';
                 
                 let linesText = '';
                 c.main.lines.forEach(line => {
-                    // 构建卦画符号
-                    // 阴爻: ==  == (U+268B ⚋ 看起来太小，用ASCII模拟更通用)
-                    // 阳爻: ====== 
                     const lineSymbol = line.isYang ? "====== " : "==  == ";
-                    const movingMark = line.isMoving ? (line.isYang ? "O" : "X") : " "; // 动爻标记
-                    const shiYing = line.shi ? "(世)" : (line.ying ? "(应)" : "    ");
+                    const movingMark = line.isMoving ? (line.isYang ? "O" : "X") : " "; 
+                    const shiYing = line.shi ? (isZh ? "(世)" : "(Self)") : (line.ying ? (isZh ? "(应)" : "(Other)") : "    ");
+                    const beast = translateTerm(line.beast);
+                    const relation = translateTerm(line.relation);
+                    const wuxing = translateTerm(line.wuxing);
                     
-                    linesText += `${lineSymbol}${movingMark} ${line.beast} ${line.relation} ${line.branch}${line.wuxing} ${shiYing}\n`;
+                    linesText += `${lineSymbol}${movingMark} ${beast} ${relation} ${line.branch}${wuxing} ${shiYing}\n`;
                 });
 
-                return `大师您好，我诚心求测。
+                return `${t('msg_intro')}
 
-【问题】
+${t('msg_q')}
 ${question.value}
 
-【时间】
-${lunarInfo.value.dateStr} (空亡: ${lunarInfo.value.kongWang})
-(公历: ${lunarInfo.value.solarTime})
+${t('msg_t')}
+${lunarInfo.value.dateStr} (${t('label_void')}: ${lunarInfo.value.kongWang})
+(${t('label_solar')}: ${lunarInfo.value.solarTime})
 
-【卦象】
-本卦：${c.main.name} (${c.main.palace}${c.main.element})
+${t('msg_g')}
+${c.main.name} (${c.main.palace}${translateTerm(c.main.element)}) ${changeText}
 ------------------------
 ${linesText}------------------------
-变卦：${c.changed.name}
 
-请大师详批。`;
+${t('msg_end')}`;
             };
 
-            // 兼容性更强的复制函数
             const copyToClipboard = (text) => {
                 return new Promise((resolve, reject) => {
                     if (navigator.clipboard && window.isSecureContext) {
@@ -494,7 +625,7 @@ ${linesText}------------------------
                     textArea.focus(); textArea.select();
                     const successful = document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    if (successful) resolve(); else reject(new Error('复制指令失败'));
+                    if (successful) resolve(); else reject(new Error('Copy failed'));
                 } catch (err) { reject(err); }
             };
 
@@ -507,23 +638,23 @@ ${linesText}------------------------
                 const text = getChartText();
                 copyToClipboard(text)
                     .then(() => {
-                        showToast('详细卦象已复制！请粘贴给大师', 'success');
+                        showToast(t('toast_copy_success'), 'success');
                         setTimeout(() => window.location.href = 'weixin://', 1200);
                     })
-                    .catch(() => showToast('复制失败，请手动截图', 'error'));
+                    .catch(() => showToast(t('toast_fail'), 'error'));
             };
 
             const copyWeChatIDOnly = () => {
                 copyToClipboard(MY_WECHAT_ID)
-                    .then(() => showToast('微信号已复制！', 'success'))
-                    .catch(() => showToast('复制失败', 'error'));
+                    .then(() => showToast(t('toast_wechat_copy'), 'success'))
+                    .catch(() => showToast(t('toast_fail'), 'error'));
             }
 
             const resetAll = () => {
                 step.value = 1;
                 inputLines.value = [];
                 question.value = '';
-                statusText.value = '点击按钮摇卦';
+                statusText.value = '';
             };
 
             const getRelationClass = (r) => {
@@ -548,7 +679,7 @@ ${linesText}------------------------
             };
             const getLiuQin=(p,l)=>{const gens={'木':'火','火':'土','土':'金','金':'水','水':'木'},cons={'木':'土','土':'水','水':'火','火':'金','金':'木'};if(p===l)return'兄弟';if(gens[l]===p)return'父母';if(gens[p]===l)return'子孙';if(cons[l]===p)return'官鬼';if(cons[p]===l)return'妻财';return'未知';};
 
-            return { step, question, inputLines, isShaking, lastCoins, statusText, currentChart, lunarInfo, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, MY_WECHAT_ID, toast };
+            return { step, question, inputLines, isShaking, lastCoins, statusText, currentChart, lunarInfo, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, MY_WECHAT_ID, toast, t, toggleLang, translateTerm };
         }
     }).mount('#app');
 </script>
