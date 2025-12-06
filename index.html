@@ -3,16 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>六爻天机 - I Ching & BaZi</title>
-    <!-- Tailwind CSS -->
+    <title>六爻天机 - 真人大师亲算</title>
+    
+    <!-- ========================================== -->
+    <!-- 核心依赖库 (修复：补充缺失的库)            -->
+    <!-- ========================================== -->
+    
+    <!-- 1. Tailwind CSS (样式框架) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Vue 3 -->
+    
+    <!-- 2. Vue 3 (前端框架) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- Lunar Javascript -->
+    
+    <!-- 3. Lunar.js (农历/八字核心算法库 - 必需) -->
     <script src="https://unpkg.com/lunar-javascript@1.6.12/lunar.js"></script>
-    <!-- Phosphor Icons -->
+    
+    <!-- 4. Phosphor Icons (图标库 - 必需) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- 不蒜子统计 -->
+    
+    <!-- 5. 不蒜子 (访问量统计 - 可选) -->
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     
     <style>
@@ -39,7 +48,7 @@
         /* 隐藏滚动条 */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
-        /* 六爻样式 */
+        /* 六爻 - 阴阳爻样式 */
         .yang-stroke { 
             height: 12px; width: 100%; 
             background: linear-gradient(90deg, #c0392b, #a93226, #c0392b);
@@ -84,27 +93,12 @@
         }
         .btn-shake { animation: pulse-shadow 2s infinite; }
 
-        /* 通用动效 */
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-        .fade-enter-from, .fade-leave-to { opacity: 0; }
-        .slide-up-enter-active { transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .slide-up-enter-from { opacity: 0; transform: translateY(30px); }
-        .slide-up-enter-to { opacity: 1; transform: translateY(0); }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 8px 32px -8px rgba(0,0,0,0.05);
-        }
-
-        /* 八字五行颜色 */
-        .wx-wood { color: #166534; } /* 木 */
-        .wx-fire { color: #dc2626; } /* 火 */
-        .wx-earth { color: #854d0e; } /* 土 */
-        .wx-metal { color: #525252; } /* 金 */
-        .wx-water { color: #1e40af; } /* 水 */
+        /* 八字 - 五行颜色 */
+        .wx-wood { color: #166534; } 
+        .wx-fire { color: #dc2626; } 
+        .wx-earth { color: #854d0e; } 
+        .wx-metal { color: #525252; } 
+        .wx-water { color: #1e40af; } 
         
         .bazi-pillar {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -114,17 +108,61 @@
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* Toast */
+        /* 八字 - 大运样式 (修复：选中时文字颜色) */
+        .dayun-selected {
+            background-color: #a93226 !important;
+            box-shadow: 0 4px 6px -1px rgba(169, 50, 38, 0.3);
+            border: 1px solid #a93226;
+        }
+        /* 强制选中状态下的所有子元素变成白色 */
+        .dayun-selected * {
+            color: white !important;
+        }
+        
+        .dayun-current-border {
+            border: 2px solid #a93226;
+            background-color: rgba(169, 50, 38, 0.05);
+        }
+        .dayun-item {
+            min-width: 3.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.6);
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        /* 修复：精简动画定义，避免冗余 */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        .slide-up-enter-active { transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .slide-up-enter-from { opacity: 0; transform: translateY(30px); }
+        .slide-up-enter-to { opacity: 1; transform: translateY(0); }
+        
         .toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
         .toast-enter-from, .toast-leave-to { transform: translateY(-100%); opacity: 0; }
         .toast-enter-to, .toast-leave-from { transform: translateY(0); opacity: 1; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px -8px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body class="antialiased h-screen overflow-hidden flex flex-col text-stone-800">
 
 <div id="app" class="w-full h-full flex flex-col relative max-w-md mx-auto shadow-2xl bg-white/30">
 
-    <!-- Toast -->
+    <!-- Toast 提示 -->
     <transition name="toast">
         <div v-if="toast.show" class="absolute top-0 left-0 right-0 z-50 p-4 flex justify-center">
             <div class="bg-stone-800 text-white px-4 py-2 rounded-full shadow-lg text-sm flex items-center gap-2">
@@ -210,11 +248,11 @@
                         <div class="bg-white/80 border border-stone-200 rounded-xl p-4 space-y-3">
                             <div>
                                 <label class="block text-xs text-stone-400 mb-1">{{ t('label_birth_date') }}</label>
-                                <input type="date" v-model="baziInput.date" class="w-full bg-transparent border-b border-stone-300 py-1 focus:outline-none focus:border-[#a93226] font-mono text-lg">
+                                <input type="date" v-model="baziInput.date" class="w-full bg-transparent border-b border-stone-300 py-1 focus:outline-none focus:border-[#a93226] font-mono text-lg text-stone-800">
                             </div>
                             <div>
                                 <label class="block text-xs text-stone-400 mb-1">{{ t('label_birth_time') }}</label>
-                                <input type="time" v-model="baziInput.time" class="w-full bg-transparent border-b border-stone-300 py-1 focus:outline-none focus:border-[#a93226] font-mono text-lg">
+                                <input type="time" v-model="baziInput.time" class="w-full bg-transparent border-b border-stone-300 py-1 focus:outline-none focus:border-[#a93226] font-mono text-lg text-stone-800">
                             </div>
                         </div>
                         
@@ -236,7 +274,7 @@
                 </div>
             </div>
 
-            <!-- Phase 2: 六爻摇卦 (仅六爻模式) -->
+            <!-- Phase 2: 六爻摇卦 -->
             <div v-else-if="step === 2 && mode === 'liuyao'" key="step2" class="h-full flex flex-col">
                 <div class="text-center mb-8 animate-fade-in">
                     <div class="text-[10px] text-stone-400 uppercase tracking-widest mb-2">{{ t('label_question') }}</div>
@@ -382,7 +420,47 @@
                                 </div>
                             </div>
 
-                            <!-- 五行统计条 -->
+                            <!-- 运势推演 (大运/流年/流日) -->
+                            <div class="bg-white/50 rounded-lg p-3 border border-stone-100 mb-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="text-[10px] text-stone-400 uppercase">{{ t('label_luck_cycle') }}</div>
+                                    <div class="text-[10px] text-[#a93226] font-bold">{{ t('label_start_luck') }}: {{ baziChart.startAge }} {{ t('label_age') }}</div>
+                                </div>
+                                
+                                <!-- 大运滚动条 (可点击) -->
+                                <div class="flex overflow-x-auto gap-2 pb-2 mb-3">
+                                    <div v-for="(dy, idx) in baziChart.dayun" :key="idx" 
+                                         @click="selectDaYun(idx)"
+                                         class="dayun-item transition-all shrink-0 cursor-pointer"
+                                         :class="[
+                                            selectedDaYunIndex === idx ? 'dayun-selected' : '',
+                                            (dy.isCurrent && selectedDaYunIndex !== idx) ? 'dayun-current-border' : ''
+                                         ]">
+                                        <div class="font-bold">{{ dy.ganZhi }}</div>
+                                        <div class="text-[9px] opacity-80">{{ dy.startAge }}{{ t('label_age_short') }}</div>
+                                    </div>
+                                </div>
+
+                                <!-- 流年流日 (可自由选择日期) - 修复选择问题 -->
+                                <div class="bg-stone-100/50 rounded p-3 text-center border border-stone-200/50 flex items-center justify-between">
+                                    
+                                    <div class="text-left relative">
+                                        <div class="text-[9px] text-stone-400 mb-1 flex items-center gap-1">
+                                            {{ t('label_analysis_date') }}
+                                        </div>
+                                        <!-- 显式日期选择器 -->
+                                        <input type="date" v-model="analysisDate" @change="updateAnalysis" 
+                                               class="bg-transparent font-mono text-xs font-bold text-stone-600 border-b border-dashed border-stone-300 focus:outline-none focus:border-[#a93226]">
+                                    </div>
+
+                                    <div class="text-right">
+                                        <div class="font-bold text-stone-800 text-sm">{{ baziChart.currentLiuNian }}</div>
+                                        <div class="font-bold text-stone-600 text-xs">{{ baziChart.currentLiuRi }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 五行统计 -->
                             <div class="bg-stone-50 rounded-lg p-3">
                                 <div class="text-[10px] text-stone-400 mb-2 uppercase">{{ t('label_5_elements') }}</div>
                                 <div class="flex h-3 rounded-full overflow-hidden w-full">
@@ -497,6 +575,7 @@
             msg_t: "【时间】",
             msg_g: "【卦象】",
             msg_bazi: "【八字】",
+            msg_yun: "【大运流年】",
             msg_end: "请大师详批。",
             label_birth_date: "出生日期 (公历)",
             label_birth_time: "出生时间",
@@ -507,7 +586,14 @@
             bazi_female: "坤造 (女)",
             col_year: "年柱", col_month: "月柱", col_day: "日柱", col_hour: "时柱",
             label_5_elements: "五行能量",
-            wx_wood: "木", wx_fire: "火", wx_earth: "土", wx_metal: "金", wx_water: "水"
+            wx_wood: "木", wx_fire: "火", wx_earth: "土", wx_metal: "金", wx_water: "水",
+            label_luck_cycle: "大运推演",
+            label_start_luck: "起运",
+            label_age: "岁",
+            label_age_short: "岁",
+            label_curr_year: "流年",
+            label_curr_day: "流日",
+            label_analysis_date: "推演日期"
         },
         en: {
             app_title: "Destiny Decoder",
@@ -549,6 +635,7 @@
             msg_t: "[Time]",
             msg_g: "[Hexagram]",
             msg_bazi: "[BaZi Chart]",
+            msg_yun: "[Luck Cycles]",
             msg_end: "Please analyze.",
             label_birth_date: "Birth Date (Solar)",
             label_birth_time: "Birth Time",
@@ -559,7 +646,14 @@
             bazi_female: "Female",
             col_year: "YEAR", col_month: "MONTH", col_day: "DAY", col_hour: "HOUR",
             label_5_elements: "5 Elements",
-            wx_wood: "Wood", wx_fire: "Fire", wx_earth: "Earth", wx_metal: "Metal", wx_water: "Water"
+            wx_wood: "Wood", wx_fire: "Fire", wx_earth: "Earth", wx_metal: "Metal", wx_water: "Water",
+            label_luck_cycle: "Luck Cycles (Da Yun)",
+            label_start_luck: "Start Age",
+            label_age: "",
+            label_age_short: "y.o.",
+            label_curr_year: "Current Year",
+            label_curr_day: "Current Day",
+            label_analysis_date: "Analysis Date"
         }
     };
 
@@ -596,6 +690,8 @@
             // 八字 State
             const baziInput = reactive({ gender: '1', date: '', time: '' });
             const baziChart = ref(null);
+            const analysisDate = ref(new Date().toISOString().split('T')[0]); // Default today
+            const selectedDaYunIndex = ref(-1);
             
             const lunarInfo = ref({});
             const toast = reactive({ show: false, message: '', type: 'info' });
@@ -614,9 +710,7 @@
                 mode.value = m;
                 step.value = 1;
                 question.value = '';
-                // Reset inputs if needed
                 if(m === 'bazi' && !baziInput.date) {
-                    // Default to today
                     const now = new Date();
                     baziInput.date = now.toISOString().split('T')[0];
                     baziInput.time = now.toTimeString().split(' ')[0].substring(0,5);
@@ -704,16 +798,27 @@
             };
 
             const calcBaZi = () => {
-                const [y, m, d] = baziInput.date.split('-');
-                const [h, min] = baziInput.time.split(':'); // Fix: split by colon for time
-                const solar = Solar.fromYmdHms(parseInt(y), parseInt(m), parseInt(d), parseInt(h), parseInt(min), 0);
+                // Initialize/Reset analysis date to today
+                analysisDate.value = new Date().toISOString().split('T')[0];
+                
+                // Safe parsing for date inputs
+                const dateParts = baziInput.date.split('-');
+                if (dateParts.length !== 3) return; // Basic validation
+                const timeParts = baziInput.time.split(':');
+                if (timeParts.length !== 2) return;
+
+                const y = parseInt(dateParts[0]);
+                const m = parseInt(dateParts[1]);
+                const d = parseInt(dateParts[2]);
+                const h = parseInt(timeParts[0]);
+                const min = parseInt(timeParts[1]);
+
+                const solar = Solar.fromYmdHms(y, m, d, h, min, 0);
                 const lunar = solar.getLunar();
                 const eightChar = lunar.getEightChar();
                 
-                // 统计五行
+                // 1. 四柱
                 const wuxingCount = { 'gold':0, 'wood':0, 'water':0, 'fire':0, 'earth':0 };
-                // 简单的统计（基于八字字符查表）
-                // 由于 lunar-javascript 没直接提供 stats，我们手动查
                 const pillars = [
                     {s: eightChar.getYearGan(), b: eightChar.getYearZhi()},
                     {s: eightChar.getMonthGan(), b: eightChar.getMonthZhi()},
@@ -733,23 +838,68 @@
                 const processedPillars = pillars.map(p => {
                     const sWx = getWx(p.s);
                     const bWx = getWx(p.b);
-                    // 修正 key 为了展示
-                    wuxingCount[sWx === 'metal' ? 'gold' : sWx]++; // UI uses 'gold' not 'metal' key in map below, actually 'metal' is standard
-                    // Let's standardize to 'metal' but css uses 'metal'
-                    // Re-mapping count keys
+                    wuxingCount[sWx === 'metal' ? 'gold' : sWx]++; 
                     return { stem: p.s, branch: p.b, stemWx: sWx, branchWx: bWx };
                 });
                 
-                // Re-count properly
                 const counts = { 'wood':0, 'fire':0, 'earth':0, 'metal':0, 'water':0 };
                 processedPillars.forEach(p => { counts[p.stemWx]++; counts[p.branchWx]++; });
 
+                // 2. 大运 (安全计算)
+                const gender = parseInt(baziInput.gender); 
+                const yun = eightChar.getYun(gender);
+                const daYunArr = yun.getDaYun();
+                
+                // Check if daYunArr is valid before accessing [0]
+                const startAge = (daYunArr && daYunArr.length > 0) ? daYunArr[0].getStartAge() : 0;
+                
+                const currentAge = new Date().getFullYear() - y + 1; 
+
+                const processedDaYun = daYunArr.slice(0, 8).map(dy => {
+                    const age = dy.getStartAge();
+                    const isActive = currentAge >= age && currentAge < (age + 10);
+                    return { ganZhi: dy.getGanZhi(), startAge: age, isCurrent: isActive };
+                });
+
+                // Set default selected index to current age
+                const currentIdx = processedDaYun.findIndex(d => d.isCurrent);
+                selectedDaYunIndex.value = currentIdx !== -1 ? currentIdx : 0;
+
                 baziChart.value = {
                     gender: baziInput.gender,
-                    solarDate: `${y}-${m}-${d} ${baziInput.time}`,
+                    solarDate: `${y}-${m}-${d} ${h}:${min}`,
                     pillars: processedPillars,
-                    wuxingCount: counts
+                    wuxingCount: counts,
+                    startAge: startAge,
+                    dayun: processedDaYun,
+                    currentAge: currentAge,
+                    currentLiuNian: '', // Will be set by updateAnalysis
+                    currentLiuRi: ''
                 };
+                
+                // 3. Initial Liu Nian/Ri calculation
+                updateAnalysis();
+            };
+
+            const updateAnalysis = () => {
+                if(!baziChart.value) return;
+                
+                const dateParts = analysisDate.value.split('-');
+                if (dateParts.length !== 3) return;
+
+                const y = parseInt(dateParts[0]);
+                const m = parseInt(dateParts[1]);
+                const d = parseInt(dateParts[2]);
+
+                const solar = Solar.fromYmd(y, m, d);
+                const lunar = solar.getLunar();
+                
+                baziChart.value.currentLiuNian = lunar.getYearInGanZhi() + (currentLang.value==='zh'?'年':'');
+                baziChart.value.currentLiuRi = lunar.getDayInGanZhi() + (currentLang.value==='zh'?'日':'');
+            };
+
+            const selectDaYun = (index) => {
+                selectedDaYunIndex.value = index;
             };
 
             // Common Utilities
@@ -792,14 +942,24 @@ ${t('msg_end')}`;
                 const p = c.pillars;
                 const qText = question.value ? `\n${t('msg_q')} ${question.value}` : '';
                 
+                // Get Selected DaYun
+                const selDy = c.dayun[selectedDaYunIndex.value];
+                const dyText = selDy ? `${selDy.ganZhi} (${selDy.startAge}${t('label_age_short')})` : 'N/A';
+
                 return `${t('msg_intro')}
 ${t('label_birth_date')}: ${c.solarDate}
-${gender}
+${gender} (${c.currentAge}${t('label_age_short')})
 ${qText}
 
 ${t('msg_bazi')}
 ${t('col_year')}  ${t('col_month')}  ${t('col_day')}  ${t('col_hour')}
 ${p[0].stem}${p[0].branch}  ${p[1].stem}${p[1].branch}  ${p[2].stem}${p[2].branch}  ${p[3].stem}${p[3].branch}
+
+${t('msg_yun')}
+Focus: ${dyText}
+${t('label_analysis_date')}: ${analysisDate.value}
+${t('label_curr_year')}: ${c.currentLiuNian}
+${t('label_curr_day')}: ${c.currentLiuRi}
 
 ${t('label_5_elements')}: 
 ${t('wx_metal')}:${c.wuxingCount.metal} ${t('wx_wood')}:${c.wuxingCount.wood} ${t('wx_water')}:${c.wuxingCount.water} ${t('wx_fire')}:${c.wuxingCount.fire} ${t('wx_earth')}:${c.wuxingCount.earth}
@@ -820,7 +980,6 @@ ${t('msg_end')}`;
                 }).catch(() => showToast(t('toast_fail'), 'error'));
             };
             
-            // Clipboard Utils
             const copyToClipboard = (text) => {
                 return new Promise((resolve, reject) => {
                     if (navigator.clipboard && window.isSecureContext) {
@@ -848,7 +1007,7 @@ ${t('msg_end')}`;
                 step.value = 1; inputLines.value = []; question.value = ''; statusText.value = '';
             };
 
-            // Hardcoded Logic (Minified for brevity)
+            // Hardcoded Logic (Minified)
             const identifyHexagram=(bits)=>{const lKey=''+bits[2]+bits[1]+bits[0],uKey=''+bits[5]+bits[4]+bits[3];const tian=bits[5]===bits[2],ren=bits[4]===bits[1],di=bits[3]===bits[0];let shi=0,pName='',isYou=false,isGui=false;const uName=TRIGRAMS[uKey].name,lName=TRIGRAMS[lKey].name;const inv=(k)=>k.split('').map(x=>x==='1'?'0':'1').join('');if(tian&&ren&&di){shi=6;pName=uName;}else if(tian&&ren&&!di){shi=1;pName=uName;}else if(tian&&!ren&&!di){shi=2;pName=uName;}else if(!tian&&!ren&&!di){shi=3;pName=uName;}else if(!tian&&!ren&&di){shi=4;pName=TRIGRAMS[inv(lKey)].name;}else if(!tian&&ren&&di){shi=5;pName=TRIGRAMS[inv(lKey)].name;}else if(tian&&!ren&&di){shi=4;pName=TRIGRAMS[inv(lKey)].name;isYou=true;}else if(!tian&&ren&&!di){shi=3;pName=lName;isGui=true;}const pEl=NA_JIA[pName]?TRIGRAMS[Object.keys(TRIGRAMS).find(k=>TRIGRAMS[k].name===pName)].element:'金';let oIdx=0;if(shi===6)oIdx=0;else if(shi===1)oIdx=1;else if(shi===2)oIdx=2;else if(shi===3&&!isGui)oIdx=3;else if(shi===4&&!isYou)oIdx=4;else if(shi===5)oIdx=5;else if(isYou)oIdx=6;else if(isGui)oIdx=7;let pIndex=['乾','坎','艮','震','巽','离','坤','兑'].indexOf(pName);if(pIndex===-1)pIndex=0;return{fullName:PALACES[pIndex][oIdx],palace:pName,palaceIndex:pIndex,element:pEl,shiIndex:shi-1,yingIndex:(shi-1+3)%6};};
             const mountHexagram=(bits,info,mov,isM,overrideEl)=>{const lName=TRIGRAMS[''+bits[2]+bits[1]+bits[0]].name,uName=TRIGRAMS[''+bits[5]+bits[4]+bits[3]].name;const lines=[],pEl=overrideEl||info.element;for(let i=0;i<6;i++){const isY=bits[i]===1,rule=i<3?NA_JIA[lName]:NA_JIA[uName];const st=i<3?rule[0]:rule[2],br=i<3?rule[1][i]:rule[3][i-3];const wx=WUXING_MAP[br],rel=getLiuQin(pEl,wx);lines.push({index:i,isYang:isY,stem:st,branch:br,wuxing:wx,relation:rel,shi:isM&&i===info.shiIndex,ying:isM&&i===info.yingIndex,isMoving:isM&&mov.includes(i),isMovingOrigin:!isM&&mov.includes(i)});}return{lines};};
             const getLiuQin=(p,l)=>{const gens={'木':'火','火':'土','土':'金','金':'水','水':'木'},cons={'木':'土','土':'水','水':'火','火':'金','金':'木'};if(p===l)return'兄弟';if(gens[l]===p)return'父母';if(gens[p]===l)return'子孙';if(cons[l]===p)return'官鬼';if(cons[p]===l)return'妻财';return'未知';};
@@ -856,8 +1015,9 @@ ${t('msg_end')}`;
 
             return { 
                 mode, step, question, inputLines, isShaking, lastCoins, statusText, currentChart, lunarInfo, 
-                baziInput, baziChart, toast, 
-                t, toggleLang, switchMode, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, translateTerm, getWuXingColor, getWuXingHex, canProceed, MY_WECHAT_ID 
+                baziInput, baziChart, analysisDate, selectedDaYunIndex, toast, 
+                t, toggleLang, switchMode, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, translateTerm, getWuXingColor, getWuXingHex, canProceed, MY_WECHAT_ID,
+                updateAnalysis, selectDaYun
             };
         }
     }).mount('#app');
