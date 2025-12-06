@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>六爻天机 - I Ching Divination</title>
+    <title>六爻天机 - I Ching & BaZi</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
@@ -27,7 +27,7 @@
         }
 
         body {
-            font-family: 'Noto Serif SC', 'Crimson Text', serif; /* 中西文混排字体优化 */
+            font-family: 'Noto Serif SC', 'Crimson Text', serif;
             background-color: var(--paper-bg);
             color: var(--ink-color);
             background-image: 
@@ -39,7 +39,7 @@
         /* 隐藏滚动条 */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
-        /* 卦爻样式 */
+        /* 六爻样式 */
         .yang-stroke { 
             height: 12px; width: 100%; 
             background: linear-gradient(90deg, #c0392b, #a93226, #c0392b);
@@ -84,8 +84,8 @@
         }
         .btn-shake { animation: pulse-shadow 2s infinite; }
 
-        /* 动效与卡片 */
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.4s ease; }
+        /* 通用动效 */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
         .slide-up-enter-active { transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .slide-up-enter-from { opacity: 0; transform: translateY(30px); }
@@ -99,6 +99,21 @@
             box-shadow: 0 8px 32px -8px rgba(0,0,0,0.05);
         }
 
+        /* 八字五行颜色 */
+        .wx-wood { color: #166534; } /* 木 */
+        .wx-fire { color: #dc2626; } /* 火 */
+        .wx-earth { color: #854d0e; } /* 土 */
+        .wx-metal { color: #525252; } /* 金 */
+        .wx-water { color: #1e40af; } /* 水 */
+        
+        .bazi-pillar {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px 0;
+            background: rgba(255,255,255,0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
         /* Toast */
         .toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
         .toast-enter-from, .toast-leave-to { transform: translateY(-100%); opacity: 0; }
@@ -109,7 +124,7 @@
 
 <div id="app" class="w-full h-full flex flex-col relative max-w-md mx-auto shadow-2xl bg-white/30">
 
-    <!-- 全局 Toast -->
+    <!-- Toast -->
     <transition name="toast">
         <div v-if="toast.show" class="absolute top-0 left-0 right-0 z-50 p-4 flex justify-center">
             <div class="bg-stone-800 text-white px-4 py-2 rounded-full shadow-lg text-sm flex items-center gap-2">
@@ -122,16 +137,12 @@
 
     <!-- Header -->
     <header class="h-14 flex items-center justify-between px-4 shrink-0 z-10 pt-2 bg-white/40 backdrop-blur-sm border-b border-stone-200/50">
-        <!-- 占位，保持标题居中 -->
         <div class="w-8"></div>
-        
         <div class="flex flex-col items-center">
             <h1 class="font-serif font-bold text-lg tracking-[0.2em] text-[#a93226]" style="font-family: 'Ma Shan Zheng', cursive;">
                 {{ t('app_title') }}
             </h1>
         </div>
-
-        <!-- 语言切换按钮 -->
         <button @click="toggleLang" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-200/50 transition text-stone-600">
             <i class="ph ph-globe text-xl"></i>
         </button>
@@ -140,44 +151,93 @@
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto overflow-x-hidden p-6 relative" ref="scrollContainer">
         
-        <!-- Phase 1: 输入问题 -->
+        <!-- Phase 1: 输入与模式选择 -->
         <transition name="fade" mode="out-in">
-            <div v-if="step === 1" key="step1" class="h-full flex flex-col pt-6">
-                <div class="text-center space-y-3 mb-8">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-stone-100 to-white shadow-inner border border-stone-200 mb-2">
-                        <i class="ph ph-hands-praying text-3xl text-stone-600"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-stone-800 tracking-wide">{{ t('step1_title') }}</h2>
-                    <p class="text-stone-500 text-xs tracking-widest uppercase">{{ t('step1_subtitle') }}</p>
+            <div v-if="step === 1" key="step1" class="h-full flex flex-col">
+                
+                <!-- 模式切换 Tab -->
+                <div class="bg-white/60 p-1 rounded-xl flex mb-8 shadow-sm border border-white">
+                    <button @click="switchMode('liuyao')" 
+                        class="flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300"
+                        :class="mode === 'liuyao' ? 'bg-white shadow text-[#a93226]' : 'text-stone-400 hover:text-stone-600'">
+                        {{ t('tab_liuyao') }}
+                    </button>
+                    <button @click="switchMode('bazi')" 
+                        class="flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-300"
+                        :class="mode === 'bazi' ? 'bg-white shadow text-[#a93226]' : 'text-stone-400 hover:text-stone-600'">
+                        {{ t('tab_bazi') }}
+                    </button>
                 </div>
 
-                <div class="w-full space-y-6 flex-1">
-                    <div class="relative group">
-                        <textarea v-model="question" rows="4" :placeholder="t('step1_placeholder')" 
-                            class="w-full p-5 bg-white/80 border border-stone-200 rounded-2xl focus:outline-none focus:border-[#a93226] focus:ring-4 focus:ring-[#a93226]/10 transition resize-none shadow-sm text-stone-700 text-lg leading-relaxed placeholder-stone-400"></textarea>
+                <div class="text-center space-y-3 mb-6">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-stone-100 to-white shadow-inner border border-stone-200 mb-2">
+                        <i v-if="mode==='liuyao'" class="ph ph-hands-praying text-3xl text-stone-600"></i>
+                        <i v-else class="ph ph-scroll text-3xl text-stone-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-stone-800 tracking-wide">{{ t(mode + '_title') }}</h2>
+                    <p class="text-stone-500 text-xs tracking-widest uppercase">{{ t(mode + '_subtitle') }}</p>
+                </div>
+
+                <div class="w-full space-y-5 flex-1">
+                    
+                    <!-- 六爻输入 -->
+                    <div v-if="mode === 'liuyao'" class="space-y-5">
+                        <div class="relative group">
+                            <textarea v-model="question" rows="4" :placeholder="t('step1_placeholder')" 
+                                class="w-full p-5 bg-white/80 border border-stone-200 rounded-2xl focus:outline-none focus:border-[#a93226] focus:ring-4 focus:ring-[#a93226]/10 transition resize-none shadow-sm text-stone-700 text-lg leading-relaxed placeholder-stone-400"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 八字输入 -->
+                    <div v-else class="space-y-4">
+                        <!-- 性别 -->
+                        <div class="flex gap-4">
+                            <label class="flex-1 flex items-center justify-center gap-2 p-3 bg-white/80 border border-stone-200 rounded-xl cursor-pointer transition hover:border-[#a93226]"
+                                :class="baziInput.gender==='1'?'border-[#a93226] bg-[#a93226]/5':''">
+                                <input type="radio" v-model="baziInput.gender" value="1" class="hidden">
+                                <i class="ph ph-gender-male text-blue-500"></i>
+                                <span class="text-sm font-bold">{{ t('gender_male') }}</span>
+                            </label>
+                            <label class="flex-1 flex items-center justify-center gap-2 p-3 bg-white/80 border border-stone-200 rounded-xl cursor-pointer transition hover:border-[#a93226]"
+                                :class="baziInput.gender==='0'?'border-[#a93226] bg-[#a93226]/5':''">
+                                <input type="radio" v-model="baziInput.gender" value="0" class="hidden">
+                                <i class="ph ph-gender-female text-pink-500"></i>
+                                <span class="text-sm font-bold">{{ t('gender_female') }}</span>
+                            </label>
+                        </div>
+
+                        <!-- 日期时间 -->
+                        <div class="bg-white/80 border border-stone-200 rounded-xl p-4 space-y-3">
+                            <div>
+                                <label class="block text-xs text-stone-400 mb-1">{{ t('label_birth_date') }}</label>
+                                <input type="date" v-model="baziInput.date" class="w-full bg-transparent border-b border-stone-300 py-1 focus:outline-none focus:border-[#a93226] font-mono text-lg">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-stone-400 mb-1">{{ t('label_birth_time') }}</label>
+                                <input type="time" v-model="baziInput.time" class="w-full bg-transparent border-b border-stone-300 py-1 focus:outline-none focus:border-[#a93226] font-mono text-lg">
+                            </div>
+                        </div>
+                        
+                        <div class="relative group">
+                            <input v-model="question" type="text" :placeholder="t('bazi_question_ph')" 
+                                class="w-full p-4 bg-white/80 border border-stone-200 rounded-xl focus:outline-none focus:border-[#a93226] transition shadow-sm text-stone-700">
+                        </div>
                     </div>
                     
-                    <button @click="nextStep" :disabled="!question.trim()"
+                    <button @click="nextStep" :disabled="!canProceed"
                         class="w-full py-4 bg-[#2c2c2c] text-[#f7f5f0] rounded-xl font-bold text-lg shadow-xl hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3">
                         <span>{{ t('btn_start') }}</span>
                         <i class="ph ph-arrow-right"></i>
                     </button>
                     
-                    <div class="text-center mt-4 space-y-2">
+                    <div class="text-center mt-4">
                          <p class="text-[10px] text-stone-400">{{ t('step1_footer') }}</p>
-                         
-                         <!-- 不蒜子 -->
-                         <div class="text-[10px] text-stone-300 font-mono mt-4">
-                            <span id="busuanzi_container_site_pv" style="display:none">
-                                {{ t('visits') }} <span id="busuanzi_value_site_pv"></span>
-                            </span>
-                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Phase 2: 摇卦 -->
-            <div v-else-if="step === 2" key="step2" class="h-full flex flex-col">
+            <!-- Phase 2: 六爻摇卦 (仅六爻模式) -->
+            <div v-else-if="step === 2 && mode === 'liuyao'" key="step2" class="h-full flex flex-col">
                 <div class="text-center mb-8 animate-fade-in">
                     <div class="text-[10px] text-stone-400 uppercase tracking-widest mb-2">{{ t('label_question') }}</div>
                     <div class="font-serif font-bold text-lg text-stone-800 px-4 leading-relaxed line-clamp-2">{{ question }}</div>
@@ -220,92 +280,126 @@
             <!-- Phase 3: 结果展示 -->
             <div v-else-if="step === 3" key="step3" class="space-y-6 pb-20">
                 
-                <div class="flex flex-col items-center justify-center pt-2">
-                    <div class="text-sm text-stone-600 font-bold font-mono tracking-wide">{{ lunarInfo.dateStr }}</div>
-                    <div class="text-[10px] text-stone-400 font-mono mt-1">{{ t('label_void') }}: {{ lunarInfo.kongWang }} | {{ t('label_solar') }}: {{ lunarInfo.solarTime }}</div>
-                </div>
-
-                <!-- 1. 本卦卡片 -->
-                <transition appear name="slide-up">
-                    <div class="glass-card rounded-2xl p-5 relative overflow-hidden">
-                        <div class="absolute right-0 top-0 bottom-0 w-1 bg-[#a93226]/20"></div>
-                        
-                        <div class="flex justify-between items-start mb-6 border-b border-stone-200/60 pb-3">
-                            <div>
-                                <span class="text-[10px] text-stone-400 block mb-1 uppercase tracking-wider">Present</span>
-                                <h3 class="text-2xl font-bold text-[#a93226]">{{ currentChart.main.name }}</h3>
-                                <span class="text-xs text-stone-500 bg-stone-100/50 px-2 py-0.5 rounded-full mt-1 inline-block">
-                                    {{ currentChart.main.palace }}{{ t('label_palace') }} · {{ translateTerm(currentChart.main.element) }}
-                                </span>
-                            </div>
-                            <div class="text-4xl text-stone-100 font-serif absolute right-4 top-2 select-none" style="font-family: 'Ma Shan Zheng'">{{ t('label_main_bg') }}</div>
-                        </div>
-
-                        <div class="space-y-2.5 relative z-10">
-                            <div v-for="line in currentChart.main.lines" :key="'main-'+line.index" class="flex items-center text-sm h-8 group">
-                                <div class="w-12 text-stone-400 text-[10px] text-center scale-95">{{ translateTerm(line.beast) }}</div>
-                                <div class="w-12 font-bold text-xs text-center scale-95" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
-                                <div class="w-14 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
-                                <div class="flex-1 px-2 flex items-center">
-                                    <div v-if="line.isYang" class="yang-stroke relative transition-all group-hover:brightness-110">
-                                        <div v-if="line.isMoving" class="absolute -right-1.5 -top-1 w-2 h-2 rounded-full bg-[#a93226] animate-pulse"></div>
-                                    </div>
-                                    <div v-else class="yin-stroke-wrapper relative transition-all group-hover:brightness-110">
-                                        <div class="yin-stroke"></div>
-                                        <div class="yin-stroke"></div>
-                                        <div v-if="line.isMoving" class="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 rounded-full bg-[#a93226] animate-pulse"></div>
-                                    </div>
-                                </div>
-                                <div class="w-6 text-[10px] font-bold text-center">
-                                    <span v-if="line.shi" class="text-white bg-[#a93226] px-1 rounded shadow-sm">{{ t('label_shi') }}</span>
-                                    <span v-if="line.ying" class="text-[#a93226] border border-[#a93226] px-0.5 rounded">{{ t('label_ying') }}</span>
-                                </div>
-                            </div>
-                        </div>
+                <!-- 六爻结果卡片 -->
+                <template v-if="mode === 'liuyao'">
+                    <div class="flex flex-col items-center justify-center pt-2">
+                        <div class="text-sm text-stone-600 font-bold font-mono tracking-wide">{{ lunarInfo.dateStr }}</div>
+                        <div class="text-[10px] text-stone-400 font-mono mt-1">{{ t('label_void') }}: {{ lunarInfo.kongWang }}</div>
                     </div>
-                </transition>
 
-                <!-- 变卦指示器 -->
-                <div v-if="currentChart.hasChange" class="flex justify-center -my-2 relative z-10 opacity-60">
-                    <i class="ph ph-arrow-down text-2xl text-stone-400 animate-bounce"></i>
-                </div>
-
-                <!-- 2. 变卦卡片 -->
-                <transition appear name="slide-up" v-if="currentChart.hasChange">
-                    <div class="glass-card rounded-2xl p-5 relative overflow-hidden bg-[#fbfdfc]/90">
-                        <div class="absolute right-0 top-0 bottom-0 w-1 bg-stone-400/20"></div>
-
-                        <div class="flex justify-between items-start mb-6 border-b border-stone-200/60 pb-3">
-                            <div>
-                                <span class="text-[10px] text-stone-400 block mb-1 uppercase tracking-wider">Future</span>
-                                <h3 class="text-2xl font-bold text-stone-700">{{ currentChart.changed.name }}</h3>
-                                <span class="text-xs text-stone-500 bg-stone-100/50 px-2 py-0.5 rounded-full mt-1 inline-block">{{ t('label_change_trend') }}</span>
+                    <transition appear name="slide-up">
+                        <div class="glass-card rounded-2xl p-5 relative overflow-hidden">
+                            <div class="absolute right-0 top-0 bottom-0 w-1 bg-[#a93226]/20"></div>
+                            <div class="flex justify-between items-start mb-6 border-b border-stone-200/60 pb-3">
+                                <div>
+                                    <span class="text-[10px] text-stone-400 block mb-1 uppercase tracking-wider">Present</span>
+                                    <h3 class="text-2xl font-bold text-[#a93226]">{{ currentChart.main.name }}</h3>
+                                    <span class="text-xs text-stone-500 bg-stone-100/50 px-2 py-0.5 rounded-full mt-1 inline-block">
+                                        {{ currentChart.main.palace }}{{ t('label_palace') }} · {{ translateTerm(currentChart.main.element) }}
+                                    </span>
+                                </div>
+                                <div class="text-4xl text-stone-100 font-serif absolute right-4 top-2 select-none" style="font-family: 'Ma Shan Zheng'">{{ t('label_main_bg') }}</div>
                             </div>
-                            <div class="text-4xl text-stone-100 font-serif absolute right-4 top-2 select-none" style="font-family: 'Ma Shan Zheng'">{{ t('label_change_bg') }}</div>
-                        </div>
-
-                        <div class="space-y-2.5 relative z-10">
-                            <div v-for="line in currentChart.changed.lines" :key="'changed-'+line.index" class="flex items-center text-sm h-8 opacity-90 group">
-                                <div class="w-12 text-stone-400 text-[10px] text-center scale-95">{{ translateTerm(line.beast) }}</div>
-                                <div class="w-12 font-bold text-xs text-center scale-95" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
-                                <div class="w-14 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
-                                <div class="flex-1 px-2 flex items-center">
-                                    <div v-if="line.isYang" class="yang-stroke bg-stone-500 !bg-none !box-shadow-none bg-stone-600"></div>
-                                    <div v-else class="yin-stroke-wrapper">
-                                        <div class="yin-stroke bg-stone-500 !bg-none !box-shadow-none bg-stone-600"></div>
-                                        <div class="yin-stroke bg-stone-500 !bg-none !box-shadow-none bg-stone-600"></div>
+                            <div class="space-y-2.5 relative z-10">
+                                <div v-for="line in currentChart.main.lines" :key="'main-'+line.index" class="flex items-center text-sm h-8 group">
+                                    <div class="w-12 text-stone-400 text-[10px] text-center scale-95">{{ translateTerm(line.beast) }}</div>
+                                    <div class="w-12 font-bold text-xs text-center scale-95" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
+                                    <div class="w-14 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
+                                    <div class="flex-1 px-2 flex items-center">
+                                        <div v-if="line.isYang" class="yang-stroke relative transition-all group-hover:brightness-110">
+                                            <div v-if="line.isMoving" class="absolute -right-1.5 -top-1 w-2 h-2 rounded-full bg-[#a93226] animate-pulse"></div>
+                                        </div>
+                                        <div v-else class="yin-stroke-wrapper relative transition-all group-hover:brightness-110">
+                                            <div class="yin-stroke"></div> <div class="yin-stroke"></div>
+                                            <div v-if="line.isMoving" class="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 rounded-full bg-[#a93226] animate-pulse"></div>
+                                        </div>
+                                    </div>
+                                    <div class="w-6 text-[10px] font-bold text-center">
+                                        <span v-if="line.shi" class="text-white bg-[#a93226] px-1 rounded shadow-sm">{{ t('label_shi') }}</span>
+                                        <span v-if="line.ying" class="text-[#a93226] border border-[#a93226] px-0.5 rounded">{{ t('label_ying') }}</span>
                                     </div>
                                 </div>
-                                <div class="w-6 text-[10px] text-center"></div>
                             </div>
                         </div>
-                    </div>
-                </transition>
+                    </transition>
 
-                <!-- 无变卦 -->
-                <div v-else class="text-center py-4 opacity-50">
-                    <span class="text-xs text-stone-400 border border-stone-200 px-3 py-1 rounded-full">{{ t('label_no_change') }}</span>
-                </div>
+                    <div v-if="currentChart.hasChange" class="flex justify-center -my-2 relative z-10 opacity-60">
+                        <i class="ph ph-arrow-down text-2xl text-stone-400 animate-bounce"></i>
+                    </div>
+
+                    <transition appear name="slide-up" v-if="currentChart.hasChange">
+                        <div class="glass-card rounded-2xl p-5 relative overflow-hidden bg-[#fbfdfc]/90">
+                            <div class="absolute right-0 top-0 bottom-0 w-1 bg-stone-400/20"></div>
+                            <div class="flex justify-between items-start mb-6 border-b border-stone-200/60 pb-3">
+                                <div>
+                                    <span class="text-[10px] text-stone-400 block mb-1 uppercase tracking-wider">Future</span>
+                                    <h3 class="text-2xl font-bold text-stone-700">{{ currentChart.changed.name }}</h3>
+                                    <span class="text-xs text-stone-500 bg-stone-100/50 px-2 py-0.5 rounded-full mt-1 inline-block">{{ t('label_change_trend') }}</span>
+                                </div>
+                                <div class="text-4xl text-stone-100 font-serif absolute right-4 top-2 select-none" style="font-family: 'Ma Shan Zheng'">{{ t('label_change_bg') }}</div>
+                            </div>
+                            <div class="space-y-2.5 relative z-10">
+                                <div v-for="line in currentChart.changed.lines" :key="'changed-'+line.index" class="flex items-center text-sm h-8 opacity-90 group">
+                                    <div class="w-12 text-stone-400 text-[10px] text-center scale-95">{{ translateTerm(line.beast) }}</div>
+                                    <div class="w-12 font-bold text-xs text-center scale-95" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
+                                    <div class="w-14 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
+                                    <div class="flex-1 px-2 flex items-center">
+                                        <div v-if="line.isYang" class="yang-stroke bg-stone-500 !bg-none !box-shadow-none bg-stone-600"></div>
+                                        <div v-else class="yin-stroke-wrapper">
+                                            <div class="yin-stroke bg-stone-500 !bg-none !box-shadow-none bg-stone-600"></div> <div class="yin-stroke bg-stone-500 !bg-none !box-shadow-none bg-stone-600"></div>
+                                        </div>
+                                    </div>
+                                    <div class="w-6 text-[10px] text-center"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                </template>
+
+                <!-- 八字结果卡片 -->
+                <template v-else>
+                    <transition appear name="slide-up">
+                        <div class="glass-card rounded-2xl p-5 relative overflow-hidden">
+                            <!-- 顶部信息 -->
+                            <div class="flex justify-between items-center mb-6 pb-2 border-b border-stone-200/50">
+                                <div class="text-xs text-stone-500 font-bold bg-stone-100 px-2 py-1 rounded">
+                                    {{ baziChart.gender === '1' ? t('bazi_male') : t('bazi_female') }} / {{ t('label_solar') }}
+                                </div>
+                                <div class="text-[10px] text-stone-400 font-mono">{{ baziChart.solarDate }}</div>
+                            </div>
+
+                            <!-- 四柱展示 -->
+                            <div class="grid grid-cols-4 gap-2 mb-6">
+                                <div class="text-center text-[10px] text-stone-400 uppercase tracking-widest">{{ t('col_year') }}</div>
+                                <div class="text-center text-[10px] text-stone-400 uppercase tracking-widest">{{ t('col_month') }}</div>
+                                <div class="text-center text-[10px] text-stone-400 uppercase tracking-widest">{{ t('col_day') }}</div>
+                                <div class="text-center text-[10px] text-stone-400 uppercase tracking-widest">{{ t('col_hour') }}</div>
+
+                                <div v-for="(p, i) in baziChart.pillars" :key="i" class="bazi-pillar">
+                                    <div class="text-lg font-bold" :class="getWuXingColor(p.stemWx)">{{ p.stem }}</div>
+                                    <div class="text-lg font-bold" :class="getWuXingColor(p.branchWx)">{{ p.branch }}</div>
+                                    <div class="text-[10px] text-stone-400 mt-1 scale-90">{{ t('wx_'+p.stemWx) }}</div>
+                                </div>
+                            </div>
+
+                            <!-- 五行统计条 -->
+                            <div class="bg-stone-50 rounded-lg p-3">
+                                <div class="text-[10px] text-stone-400 mb-2 uppercase">{{ t('label_5_elements') }}</div>
+                                <div class="flex h-3 rounded-full overflow-hidden w-full">
+                                    <div v-for="(count, wx) in baziChart.wuxingCount" :key="wx" 
+                                         :style="{width: (count/8*100) + '%', backgroundColor: getWuXingHex(wx)}"
+                                         class="h-full transition-all duration-500" :title="t('wx_'+wx)"></div>
+                                </div>
+                                <div class="flex justify-between mt-2 text-[10px] text-stone-500 font-mono">
+                                    <span v-for="(count, wx) in baziChart.wuxingCount" :key="'txt'+wx" class="flex items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full" :style="{backgroundColor: getWuXingHex(wx)}"></span>
+                                        {{count}}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                </template>
 
                 <!-- 邀请函 (双通道引流) -->
                 <transition appear name="slide-up">
@@ -320,16 +414,12 @@
                                 {{ t('cta_desc_2') }}
                             </p>
 
-                            <!-- 按钮组 -->
                             <div class="grid grid-cols-2 gap-3">
-                                <!-- WhatsApp -->
                                 <button @click="contactWhatsApp"
                                     class="relative w-full py-3 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold text-sm shadow-md active:translate-y-0.5 transition-all flex flex-col items-center justify-center gap-1">
                                     <i class="ph ph-whatsapp-logo text-2xl"></i>
                                     <span>WhatsApp</span>
                                 </button>
-
-                                <!-- WeChat -->
                                 <button @click="contactWeChat"
                                     class="relative w-full py-3 bg-[#07C160] hover:bg-[#06ad56] text-white rounded-xl font-bold text-sm shadow-md active:translate-y-0.5 transition-all flex flex-col items-center justify-center gap-1">
                                     <i class="ph ph-wechat-logo text-2xl"></i>
@@ -337,7 +427,6 @@
                                 </button>
                             </div>
                             
-                            <!-- 微信辅助信息 -->
                             <div class="text-[10px] text-[#166534] mt-3 bg-white/40 rounded-lg p-2 inline-block">
                                 {{ t('label_wechat_id') }}: <span class="font-mono font-bold select-all">{{ MY_WECHAT_ID }}</span>
                                 <span @click="copyWeChatIDOnly" class="ml-2 underline cursor-pointer text-[#07C160]">{{ t('btn_copy') }}</span>
@@ -362,19 +451,22 @@
 <script>
     const { createApp, ref, reactive, computed } = Vue;
 
-    // --- ⬇️ 请配置联系方式 ⬇️ ---
+    // --- 配置 ---
     const MY_WHATSAPP_NUMBER = "8615382537862"; 
     const MY_WECHAT_ID = "Nobebaelaguaporfavor"; 
-    // --------------------------
 
-    // --- I18n Data ---
+    // --- I18n ---
     const messages = {
         zh: {
             app_title: "六爻天机",
-            step1_title: "诚心求占",
-            step1_subtitle: "DIVINATION",
+            tab_liuyao: "六爻占卜",
+            tab_bazi: "八字命理",
+            liuyao_title: "六爻起卦",
+            liuyao_subtitle: "DIVINATION",
+            bazi_title: "八字排盘",
+            bazi_subtitle: "FOUR PILLARS",
             step1_placeholder: "请默念您的问题...\n例如：近期事业发展有无阻碍？",
-            btn_start: "开始起卦",
+            btn_start: "开始排盘",
             step1_footer: "* 心诚则灵，无事不占",
             visits: "累计访问",
             label_question: "所占之事",
@@ -397,21 +489,36 @@
             label_wechat_id: "大师微信号",
             btn_copy: "复制",
             btn_restart: "重新起卦",
-            toast_copy_success: "卦象已复制！正在打开微信...",
+            toast_copy_success: "信息已复制！正在打开微信...",
             toast_wechat_copy: "微信号已复制！",
             toast_fail: "复制失败",
             msg_intro: "大师您好，我诚心求测。",
             msg_q: "【问题】",
             msg_t: "【时间】",
             msg_g: "【卦象】",
-            msg_end: "请大师详批。"
+            msg_bazi: "【八字】",
+            msg_end: "请大师详批。",
+            label_birth_date: "出生日期 (公历)",
+            label_birth_time: "出生时间",
+            gender_male: "男",
+            gender_female: "女",
+            bazi_question_ph: "您想问大师关于命运的什么问题？(选填)",
+            bazi_male: "乾造 (男)",
+            bazi_female: "坤造 (女)",
+            col_year: "年柱", col_month: "月柱", col_day: "日柱", col_hour: "时柱",
+            label_5_elements: "五行能量",
+            wx_wood: "木", wx_fire: "火", wx_earth: "土", wx_metal: "金", wx_water: "水"
         },
         en: {
-            app_title: "I Ching Divination",
-            step1_title: "Ask the Oracle",
-            step1_subtitle: "DIVINATION",
+            app_title: "Destiny Decoder",
+            tab_liuyao: "Divination",
+            tab_bazi: "BaZi Destiny",
+            liuyao_title: "I Ching",
+            liuyao_subtitle: "DIVINATION",
+            bazi_title: "BaZi Chart",
+            bazi_subtitle: "FOUR PILLARS",
             step1_placeholder: "Meditate on your question...\nEx: Will my career improve soon?",
-            btn_start: "Start",
+            btn_start: "Analyze",
             step1_footer: "* Sincerity brings accuracy",
             visits: "Visits",
             label_question: "Question",
@@ -426,14 +533,14 @@
             label_ying: "Other",
             label_change_trend: "Change / Trend",
             label_change_bg: "Chg",
-            label_no_change: "No moving lines. Read the Base Hexagram.",
+            label_no_change: "No moving lines.",
             cta_title: "Expert Interpretation",
             cta_desc_1: "Deep insight requires expert analysis.",
             cta_desc_2: "Contact Master for a detailed reading.",
             btn_wechat: "WeChat",
             label_wechat_id: "WeChat ID",
             btn_copy: "Copy",
-            btn_restart: "New Divination",
+            btn_restart: "Restart",
             toast_copy_success: "Copied! Opening WeChat...",
             toast_wechat_copy: "ID Copied!",
             toast_fail: "Copy failed",
@@ -441,24 +548,30 @@
             msg_q: "[Question]",
             msg_t: "[Time]",
             msg_g: "[Hexagram]",
-            msg_end: "Please analyze."
+            msg_bazi: "[BaZi Chart]",
+            msg_end: "Please analyze.",
+            label_birth_date: "Birth Date (Solar)",
+            label_birth_time: "Birth Time",
+            gender_male: "Male",
+            gender_female: "Female",
+            bazi_question_ph: "Specific question about your destiny? (Optional)",
+            bazi_male: "Male",
+            bazi_female: "Female",
+            col_year: "YEAR", col_month: "MONTH", col_day: "DAY", col_hour: "HOUR",
+            label_5_elements: "5 Elements",
+            wx_wood: "Wood", wx_fire: "Fire", wx_earth: "Earth", wx_metal: "Metal", wx_water: "Water"
         }
     };
 
-    // Dictionary for Terminology Translation
     const terms = {
-        zh: {}, // Chinese doesn't need translation mapping
+        zh: {},
         en: {
-            // Wu Xing
             '金': 'Metal', '木': 'Wood', '水': 'Water', '火': 'Fire', '土': 'Earth',
-            // Liu Qin
             '父母': 'Parent', '兄弟': 'Sibling', '子孙': 'Offspring', '妻财': 'Wealth', '官鬼': 'Official',
-            // Liu Shen
             '青龙': 'Dragon', '朱雀': 'Bird', '勾陈': 'Hook', '腾蛇': 'Snake', '白虎': 'Tiger', '玄武': 'Tortoise'
         }
     };
 
-    // Constants
     const TRIGRAMS = { '111': {name:'乾',element:'金'}, '011': {name:'兑',element:'金'}, '101': {name:'离',element:'火'}, '001': {name:'震',element:'木'}, '110': {name:'巽',element:'木'}, '010': {name:'坎',element:'水'}, '100': {name:'艮',element:'土'}, '000': {name:'坤',element:'土'} };
     const PALACES = [['乾为天','天风姤','天山遁','天地否','风地观','山地剥','火地晋','火天大有'],['坎为水','水泽节','水雷屯','水火既济','泽火革','雷火丰','地火明夷','地水师'],['艮为山','山火贲','山天大畜','山泽损','火泽睽','天泽履','风泽中孚','风山渐'],['震为雷','雷地豫','雷水解','雷风恒','地风升','水风井','泽风大过','泽雷随'],['巽为风','风天小畜','风火家人','风雷益','天雷无妄','火雷噬嗑','山雷颐','山风蛊'],['离为火','火山旅','火风鼎','火水未济','山水蒙','风水涣','天水讼','天火同人'],['坤为地','地雷复','地泽临','地天泰','雷天大壮','泽天夬','水天需','水地比'],['兑为泽','泽水困','泽地萃','泽山咸','水山蹇','地山谦','雷山小过','雷泽归妹']];
     const NA_JIA = {'乾':['甲',['子','寅','辰'],'壬',['午','申','戌']],'震':['庚',['子','寅','辰'],'庚',['午','申','戌']],'坎':['戊',['寅','辰','午'],'戊',['申','戌','子']],'艮':['丙',['辰','午','申'],'丙',['戌','子','寅']],'坤':['乙',['未','巳','卯'],'癸',['丑','亥','酉']],'巽':['辛',['丑','亥','酉'],'辛',['未','巳','卯']],'离':['己',['卯','丑','亥'],'己',['酉','未','巳']],'兑':['丁',['巳','卯','丑'],'丁',['亥','酉','未']]};
@@ -468,42 +581,66 @@
 
     createApp({
         setup() {
-            const currentLang = ref('zh'); // 'zh' or 'en'
+            const currentLang = ref('zh');
+            const mode = ref('liuyao'); // 'liuyao' or 'bazi'
             const step = ref(1); 
             const question = ref('');
+            
+            // 六爻 State
             const inputLines = ref([]);
             const isShaking = ref(false);
             const lastCoins = ref([2,2,2]);
             const statusText = ref('');
             const currentChart = ref(null);
+            
+            // 八字 State
+            const baziInput = reactive({ gender: '1', date: '', time: '' });
+            const baziChart = ref(null);
+            
             const lunarInfo = ref({});
             const toast = reactive({ show: false, message: '', type: 'info' });
 
-            // Helper for UI Text
             const t = (key) => messages[currentLang.value][key] || key;
-
-            // Helper for Terminology
-            const translateTerm = (term) => {
-                if (currentLang.value === 'zh') return term;
-                return terms.en[term] || term;
-            };
+            const translateTerm = (term) => (currentLang.value === 'zh' ? term : (terms.en[term] || term));
 
             const toggleLang = () => {
                 currentLang.value = currentLang.value === 'zh' ? 'en' : 'zh';
-                // Update status text if in shaking mode
-                if(step.value === 2 && !isShaking.value && inputLines.value.length === 0) {
+                if(step.value === 2 && mode.value === 'liuyao' && !isShaking.value && inputLines.value.length === 0) {
                     statusText.value = currentLang.value === 'zh' ? '点击按钮摇卦' : 'Tap button to shake';
                 }
             };
 
-            const showToast = (msg, type='info') => {
-                toast.message = msg;
-                toast.type = type;
-                toast.show = true;
-                setTimeout(() => toast.show = false, 3000);
+            const switchMode = (m) => {
+                mode.value = m;
+                step.value = 1;
+                question.value = '';
+                // Reset inputs if needed
+                if(m === 'bazi' && !baziInput.date) {
+                    // Default to today
+                    const now = new Date();
+                    baziInput.date = now.toISOString().split('T')[0];
+                    baziInput.time = now.toTimeString().split(' ')[0].substring(0,5);
+                }
             };
 
-            const nextStep = () => { if(question.value.trim()) step.value = 2; statusText.value = currentLang.value === 'zh' ? '点击按钮摇卦' : 'Tap button to shake'; };
+            const canProceed = computed(() => {
+                if(mode.value === 'liuyao') return question.value.trim().length > 0;
+                if(mode.value === 'bazi') return baziInput.date && baziInput.time;
+                return false;
+            });
+
+            const nextStep = () => {
+                if(mode.value === 'liuyao') {
+                    if(question.value.trim()) {
+                        step.value = 2;
+                        statusText.value = currentLang.value === 'zh' ? '点击按钮摇卦' : 'Tap button to shake';
+                    }
+                } else {
+                    // BaZi Calculation
+                    calcBaZi();
+                    step.value = 3;
+                }
+            };
 
             const shake = () => {
                 if(isShaking.value || inputLines.value.length >= 6) return;
@@ -527,23 +664,23 @@
 
                     if(inputLines.value.length === 6) {
                         setTimeout(() => {
-                            generateChart();
+                            generateLiuYaoChart();
                             step.value = 3;
                         }, 600);
                     }
                 }, 800);
             };
 
-            const generateChart = () => {
+            const generateLiuYaoChart = () => {
                 const now = new Date();
                 const lunar = Lunar.fromDate(now);
-                
                 lunarInfo.value = {
                     dateStr: `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日 ${lunar.getTimeInGanZhi()}时`,
                     kongWang: lunar.getDayXunKong(),
-                    solarTime: `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`
+                    solarTime: formatDate(now)
                 };
-
+                
+                // ... (LiuYao logic same as before) ...
                 const mainBits = [], changedBits = [], movingLines = [];
                 inputLines.value.forEach((val, idx) => {
                     if (val === 6) { mainBits.push(0); changedBits.push(1); movingLines.push(idx); }
@@ -551,19 +688,14 @@
                     else if (val === 8) { mainBits.push(0); changedBits.push(0); }
                     else if (val === 9) { mainBits.push(1); changedBits.push(0); movingLines.push(idx); }
                 });
-
                 const mainInfo = identifyHexagram(mainBits);
                 const changedInfo = identifyHexagram(changedBits);
-                
                 const mainDetails = mountHexagram(mainBits, mainInfo, movingLines, true);
                 const changedDetails = mountHexagram(changedBits, changedInfo, movingLines, false, mainInfo.element);
-                
                 const dayStem = lunar.getDayInGanZhi().substring(0,1);
                 const startIdx = LIU_SHEN_START[dayStem] || 0;
-                
                 mainDetails.lines.forEach((l,i) => l.beast = LIU_SHEN_ORDER[(startIdx+i)%6]);
                 changedDetails.lines.forEach((l,i) => l.beast = LIU_SHEN_ORDER[(startIdx+i)%6]);
-
                 currentChart.value = {
                     main: { name: mainInfo.fullName, palace: mainInfo.palace, element: mainInfo.element, lines: [...mainDetails.lines].reverse() },
                     changed: { name: changedInfo.fullName, lines: [...changedDetails.lines].reverse() },
@@ -571,115 +703,162 @@
                 };
             };
 
-            // Generate Text for Copy/WhatsApp
-            const getChartText = () => {
+            const calcBaZi = () => {
+                const [y, m, d] = baziInput.date.split('-');
+                const [h, min] = baziInput.time.split(':'); // Fix: split by colon for time
+                const solar = Solar.fromYmdHms(parseInt(y), parseInt(m), parseInt(d), parseInt(h), parseInt(min), 0);
+                const lunar = solar.getLunar();
+                const eightChar = lunar.getEightChar();
+                
+                // 统计五行
+                const wuxingCount = { 'gold':0, 'wood':0, 'water':0, 'fire':0, 'earth':0 };
+                // 简单的统计（基于八字字符查表）
+                // 由于 lunar-javascript 没直接提供 stats，我们手动查
+                const pillars = [
+                    {s: eightChar.getYearGan(), b: eightChar.getYearZhi()},
+                    {s: eightChar.getMonthGan(), b: eightChar.getMonthZhi()},
+                    {s: eightChar.getDayGan(), b: eightChar.getDayZhi()},
+                    {s: eightChar.getTimeGan(), b: eightChar.getTimeZhi()}
+                ];
+                
+                const getWx = (char) => {
+                    if("甲乙寅卯".includes(char)) return 'wood';
+                    if("丙丁巳午".includes(char)) return 'fire';
+                    if("戊己辰戌丑未".includes(char)) return 'earth';
+                    if("庚辛申酉".includes(char)) return 'metal';
+                    if("壬癸亥子".includes(char)) return 'water';
+                    return 'earth';
+                };
+
+                const processedPillars = pillars.map(p => {
+                    const sWx = getWx(p.s);
+                    const bWx = getWx(p.b);
+                    // 修正 key 为了展示
+                    wuxingCount[sWx === 'metal' ? 'gold' : sWx]++; // UI uses 'gold' not 'metal' key in map below, actually 'metal' is standard
+                    // Let's standardize to 'metal' but css uses 'metal'
+                    // Re-mapping count keys
+                    return { stem: p.s, branch: p.b, stemWx: sWx, branchWx: bWx };
+                });
+                
+                // Re-count properly
+                const counts = { 'wood':0, 'fire':0, 'earth':0, 'metal':0, 'water':0 };
+                processedPillars.forEach(p => { counts[p.stemWx]++; counts[p.branchWx]++; });
+
+                baziChart.value = {
+                    gender: baziInput.gender,
+                    solarDate: `${y}-${m}-${d} ${baziInput.time}`,
+                    pillars: processedPillars,
+                    wuxingCount: counts
+                };
+            };
+
+            // Common Utilities
+            const formatDate = (date) => date.toLocaleString('zh-CN', {hour12:false});
+            const getWuXingColor = (wx) => `wx-${wx}`;
+            const getWuXingHex = (wx) => {
+                const map = { wood:'#166534', fire:'#dc2626', earth:'#854d0e', metal:'#525252', water:'#1e40af' };
+                return map[wx];
+            };
+
+            // Copy Text Logic
+            const getCopyText = () => {
+                if(mode.value === 'liuyao') return getLiuYaoText();
+                return getBaZiText();
+            };
+
+            const getLiuYaoText = () => {
                 const c = currentChart.value;
                 const isZh = currentLang.value === 'zh';
                 const changeText = c.hasChange ? ` -> ${c.changed.name}` : '';
-                
                 let linesText = '';
                 c.main.lines.forEach(line => {
                     const lineSymbol = line.isYang ? "====== " : "==  == ";
                     const movingMark = line.isMoving ? (line.isYang ? "O" : "X") : " "; 
-                    const shiYing = line.shi ? (isZh ? "(世)" : "(Self)") : (line.ying ? (isZh ? "(应)" : "(Other)") : "    ");
-                    const beast = translateTerm(line.beast);
-                    const relation = translateTerm(line.relation);
-                    const wuxing = translateTerm(line.wuxing);
-                    
-                    linesText += `${lineSymbol}${movingMark} ${beast} ${relation} ${line.branch}${wuxing} ${shiYing}\n`;
+                    const shiYing = line.shi ? (isZh?"(世)":"(Self)") : (line.ying ? (isZh?"(应)":"(Other)") : "    ");
+                    linesText += `${lineSymbol}${movingMark} ${translateTerm(line.beast)} ${translateTerm(line.relation)} ${line.branch}${translateTerm(line.wuxing)} ${shiYing}\n`;
                 });
-
                 return `${t('msg_intro')}
-
-${t('msg_q')}
-${question.value}
-
-${t('msg_t')}
-${lunarInfo.value.dateStr} (${t('label_void')}: ${lunarInfo.value.kongWang})
-(${t('label_solar')}: ${lunarInfo.value.solarTime})
-
-${t('msg_g')}
-${c.main.name} (${c.main.palace}${translateTerm(c.main.element)}) ${changeText}
+${t('msg_q')} ${question.value}
+${t('msg_t')} ${lunarInfo.value.dateStr}
+${t('msg_g')} ${c.main.name} ${changeText}
 ------------------------
 ${linesText}------------------------
+${t('msg_end')}`;
+            };
+
+            const getBaZiText = () => {
+                const c = baziChart.value;
+                const gender = c.gender === '1' ? t('bazi_male') : t('bazi_female');
+                const p = c.pillars;
+                const qText = question.value ? `\n${t('msg_q')} ${question.value}` : '';
+                
+                return `${t('msg_intro')}
+${t('label_birth_date')}: ${c.solarDate}
+${gender}
+${qText}
+
+${t('msg_bazi')}
+${t('col_year')}  ${t('col_month')}  ${t('col_day')}  ${t('col_hour')}
+${p[0].stem}${p[0].branch}  ${p[1].stem}${p[1].branch}  ${p[2].stem}${p[2].branch}  ${p[3].stem}${p[3].branch}
+
+${t('label_5_elements')}: 
+${t('wx_metal')}:${c.wuxingCount.metal} ${t('wx_wood')}:${c.wuxingCount.wood} ${t('wx_water')}:${c.wuxingCount.water} ${t('wx_fire')}:${c.wuxingCount.fire} ${t('wx_earth')}:${c.wuxingCount.earth}
 
 ${t('msg_end')}`;
             };
 
-            const copyToClipboard = (text) => {
-                return new Promise((resolve, reject) => {
-                    if (navigator.clipboard && window.isSecureContext) {
-                        navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text, resolve, reject));
-                    } else {
-                        fallbackCopy(text, resolve, reject);
-                    }
-                });
-            };
-
-            const fallbackCopy = (text, resolve, reject) => {
-                try {
-                    const textArea = document.createElement("textarea");
-                    textArea.value = text;
-                    textArea.style.position = "fixed"; textArea.style.left = "-9999px"; textArea.style.top = "0";
-                    document.body.appendChild(textArea);
-                    textArea.focus(); textArea.select();
-                    const successful = document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    if (successful) resolve(); else reject(new Error('Copy failed'));
-                } catch (err) { reject(err); }
-            };
-
             const contactWhatsApp = () => {
-                const url = `https://wa.me/${MY_WHATSAPP_NUMBER}?text=${encodeURIComponent(getChartText())}`;
+                const url = `https://wa.me/${MY_WHATSAPP_NUMBER}?text=${encodeURIComponent(getCopyText())}`;
                 window.open(url, '_blank');
             };
 
             const contactWeChat = async () => {
-                const text = getChartText();
-                copyToClipboard(text)
-                    .then(() => {
-                        showToast(t('toast_copy_success'), 'success');
-                        setTimeout(() => window.location.href = 'weixin://', 1200);
-                    })
-                    .catch(() => showToast(t('toast_fail'), 'error'));
+                const text = getCopyText();
+                copyToClipboard(text).then(() => {
+                    showToast(t('toast_copy_success'), 'success');
+                    setTimeout(() => window.location.href = 'weixin://', 1200);
+                }).catch(() => showToast(t('toast_fail'), 'error'));
             };
-
-            const copyWeChatIDOnly = () => {
-                copyToClipboard(MY_WECHAT_ID)
-                    .then(() => showToast(t('toast_wechat_copy'), 'success'))
-                    .catch(() => showToast(t('toast_fail'), 'error'));
-            }
-
-            const resetAll = () => {
-                step.value = 1;
-                inputLines.value = [];
-                question.value = '';
-                statusText.value = '';
-            };
-
-            const getRelationClass = (r) => {
-                if(r==='官鬼') return 'text-purple-700'; if(r==='妻财') return 'text-green-700';
-                if(r==='子孙') return 'text-blue-700'; if(r==='兄弟') return 'text-orange-700';
-                return 'text-stone-600';
-            };
-
-            // Logic Helpers
-            const identifyHexagram=(bits)=>{const lKey=''+bits[2]+bits[1]+bits[0],uKey=''+bits[5]+bits[4]+bits[3];const tian=bits[5]===bits[2],ren=bits[4]===bits[1],di=bits[3]===bits[0];let shi=0,pName='',isYou=false,isGui=false;const uName=TRIGRAMS[uKey].name,lName=TRIGRAMS[lKey].name;const inv=(k)=>k.split('').map(x=>x==='1'?'0':'1').join('');if(tian&&ren&&di){shi=6;pName=uName;}else if(tian&&ren&&!di){shi=1;pName=uName;}else if(tian&&!ren&&!di){shi=2;pName=uName;}else if(!tian&&!ren&&!di){shi=3;pName=uName;}else if(!tian&&!ren&&di){shi=4;pName=TRIGRAMS[inv(lKey)].name;}else if(!tian&&ren&&di){shi=5;pName=TRIGRAMS[inv(lKey)].name;}else if(tian&&!ren&&di){shi=4;pName=TRIGRAMS[inv(lKey)].name;isYou=true;}else if(!tian&&ren&&!di){shi=3;pName=lName;isGui=true;}const pEl=NA_JIA[pName]?TRIGRAMS[Object.keys(TRIGRAMS).find(k=>TRIGRAMS[k].name===pName)].element:'金';let oIdx=0;if(shi===6)oIdx=0;else if(shi===1)oIdx=1;else if(shi===2)oIdx=2;else if(shi===3&&!isGui)oIdx=3;else if(shi===4&&!isYou)oIdx=4;else if(shi===5)oIdx=5;else if(isYou)oIdx=6;else if(isGui)oIdx=7;let pIndex=['乾','坎','艮','震','巽','离','坤','兑'].indexOf(pName);if(pIndex===-1)pIndex=0;return{fullName:PALACES[pIndex][oIdx],palace:pName,palaceIndex:pIndex,element:pEl,shiIndex:shi-1,yingIndex:(shi-1+3)%6};};
             
-            const mountHexagram=(bits,info,mov,isM,overrideEl)=>{
-                const lName=TRIGRAMS[''+bits[2]+bits[1]+bits[0]].name,uName=TRIGRAMS[''+bits[5]+bits[4]+bits[3]].name;
-                const lines=[],pEl=overrideEl||info.element;
-                for(let i=0;i<6;i++){
-                    const isY=bits[i]===1,rule=i<3?NA_JIA[lName]:NA_JIA[uName];
-                    const st=i<3?rule[0]:rule[2],br=i<3?rule[1][i]:rule[3][i-3];
-                    const wx=WUXING_MAP[br],rel=getLiuQin(pEl,wx);
-                    lines.push({index:i,isYang:isY,stem:st,branch:br,wuxing:wx,relation:rel,shi:isM&&i===info.shiIndex,ying:isM&&i===info.yingIndex,isMoving:isM&&mov.includes(i),isMovingOrigin:!isM&&mov.includes(i)});
-                }
-                return {lines};
+            // Clipboard Utils
+            const copyToClipboard = (text) => {
+                return new Promise((resolve, reject) => {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text, resolve, reject));
+                    } else fallbackCopy(text, resolve, reject);
+                });
             };
-            const getLiuQin=(p,l)=>{const gens={'木':'火','火':'土','土':'金','金':'水','水':'木'},cons={'木':'土','土':'水','水':'火','火':'金','金':'木'};if(p===l)return'兄弟';if(gens[l]===p)return'父母';if(gens[p]===l)return'子孙';if(cons[l]===p)return'官鬼';if(cons[p]===l)return'妻财';return'未知';};
+            const fallbackCopy = (text, resolve, reject) => {
+                try {
+                    const ta = document.createElement("textarea");
+                    ta.value = text; ta.style.position="fixed"; ta.style.left="-9999px";
+                    document.body.appendChild(ta); ta.focus(); ta.select();
+                    const s = document.execCommand('copy'); document.body.removeChild(ta);
+                    if(s) resolve(); else reject();
+                } catch(e) { reject(e); }
+            };
+            const copyWeChatIDOnly = () => {
+                copyToClipboard(MY_WECHAT_ID).then(() => showToast(t('toast_wechat_copy'), 'success')).catch(() => showToast(t('toast_fail'), 'error'));
+            };
+            const showToast = (msg, type='info') => {
+                toast.message = msg; toast.type = type; toast.show = true;
+                setTimeout(() => toast.show = false, 3000);
+            };
+            const resetAll = () => {
+                step.value = 1; inputLines.value = []; question.value = ''; statusText.value = '';
+            };
 
-            return { step, question, inputLines, isShaking, lastCoins, statusText, currentChart, lunarInfo, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, MY_WECHAT_ID, toast, t, toggleLang, translateTerm };
+            // Hardcoded Logic (Minified for brevity)
+            const identifyHexagram=(bits)=>{const lKey=''+bits[2]+bits[1]+bits[0],uKey=''+bits[5]+bits[4]+bits[3];const tian=bits[5]===bits[2],ren=bits[4]===bits[1],di=bits[3]===bits[0];let shi=0,pName='',isYou=false,isGui=false;const uName=TRIGRAMS[uKey].name,lName=TRIGRAMS[lKey].name;const inv=(k)=>k.split('').map(x=>x==='1'?'0':'1').join('');if(tian&&ren&&di){shi=6;pName=uName;}else if(tian&&ren&&!di){shi=1;pName=uName;}else if(tian&&!ren&&!di){shi=2;pName=uName;}else if(!tian&&!ren&&!di){shi=3;pName=uName;}else if(!tian&&!ren&&di){shi=4;pName=TRIGRAMS[inv(lKey)].name;}else if(!tian&&ren&&di){shi=5;pName=TRIGRAMS[inv(lKey)].name;}else if(tian&&!ren&&di){shi=4;pName=TRIGRAMS[inv(lKey)].name;isYou=true;}else if(!tian&&ren&&!di){shi=3;pName=lName;isGui=true;}const pEl=NA_JIA[pName]?TRIGRAMS[Object.keys(TRIGRAMS).find(k=>TRIGRAMS[k].name===pName)].element:'金';let oIdx=0;if(shi===6)oIdx=0;else if(shi===1)oIdx=1;else if(shi===2)oIdx=2;else if(shi===3&&!isGui)oIdx=3;else if(shi===4&&!isYou)oIdx=4;else if(shi===5)oIdx=5;else if(isYou)oIdx=6;else if(isGui)oIdx=7;let pIndex=['乾','坎','艮','震','巽','离','坤','兑'].indexOf(pName);if(pIndex===-1)pIndex=0;return{fullName:PALACES[pIndex][oIdx],palace:pName,palaceIndex:pIndex,element:pEl,shiIndex:shi-1,yingIndex:(shi-1+3)%6};};
+            const mountHexagram=(bits,info,mov,isM,overrideEl)=>{const lName=TRIGRAMS[''+bits[2]+bits[1]+bits[0]].name,uName=TRIGRAMS[''+bits[5]+bits[4]+bits[3]].name;const lines=[],pEl=overrideEl||info.element;for(let i=0;i<6;i++){const isY=bits[i]===1,rule=i<3?NA_JIA[lName]:NA_JIA[uName];const st=i<3?rule[0]:rule[2],br=i<3?rule[1][i]:rule[3][i-3];const wx=WUXING_MAP[br],rel=getLiuQin(pEl,wx);lines.push({index:i,isYang:isY,stem:st,branch:br,wuxing:wx,relation:rel,shi:isM&&i===info.shiIndex,ying:isM&&i===info.yingIndex,isMoving:isM&&mov.includes(i),isMovingOrigin:!isM&&mov.includes(i)});}return{lines};};
+            const getLiuQin=(p,l)=>{const gens={'木':'火','火':'土','土':'金','金':'水','水':'木'},cons={'木':'土','土':'水','水':'火','火':'金','金':'木'};if(p===l)return'兄弟';if(gens[l]===p)return'父母';if(gens[p]===l)return'子孙';if(cons[l]===p)return'官鬼';if(cons[p]===l)return'妻财';return'未知';};
+            const getRelationClass = (r) => { if(r==='官鬼') return 'text-purple-700'; if(r==='妻财') return 'text-green-700'; if(r==='子孙') return 'text-blue-700'; if(r==='兄弟') return 'text-orange-700'; return 'text-stone-600'; };
+
+            return { 
+                mode, step, question, inputLines, isShaking, lastCoins, statusText, currentChart, lunarInfo, 
+                baziInput, baziChart, toast, 
+                t, toggleLang, switchMode, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, translateTerm, getWuXingColor, getWuXingHex, canProceed, MY_WECHAT_ID 
+            };
         }
     }).mount('#app');
 </script>
