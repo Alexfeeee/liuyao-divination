@@ -201,9 +201,9 @@
             <!-- Phase 3: 结果展示 -->
             <div v-else-if="step === 3" key="step3" class="space-y-6 pb-20">
                 
-                <div class="flex justify-between items-end px-2">
-                    <div class="text-xs text-stone-500 font-mono">{{ lunarInfo.dateStr }}</div>
-                    <div class="text-xs text-stone-400 font-mono">空亡: {{ lunarInfo.kongWang }}</div>
+                <div class="flex flex-col items-center justify-center pt-2">
+                    <div class="text-sm text-stone-600 font-bold font-mono tracking-wide">{{ lunarInfo.dateStr }}</div>
+                    <div class="text-[10px] text-stone-400 font-mono mt-1">空亡: {{ lunarInfo.kongWang }} | 公历: {{ lunarInfo.solarTime }}</div>
                 </div>
 
                 <!-- 1. 本卦卡片 -->
@@ -405,9 +405,11 @@
                 const now = new Date();
                 const lunar = Lunar.fromDate(now);
                 
+                // 更精确的时间计算 (增加时柱)
                 lunarInfo.value = {
-                    dateStr: `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`,
-                    kongWang: lunar.getDayXunKong()
+                    dateStr: `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日 ${lunar.getTimeInGanZhi()}时`,
+                    kongWang: lunar.getDayXunKong(),
+                    solarTime: `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`
                 };
 
                 const mainBits = [], changedBits = [], movingLines = [];
@@ -437,28 +439,47 @@
                 };
             };
 
-            // 生成卦象文本
+            // 生成卦象字符画文本
             const getChartText = () => {
                 const c = currentChart.value;
-                const changeText = c.hasChange ? ` 之 ${c.changed.name}` : '(无变卦)';
+                const changeText = c.hasChange ? `之 ${c.changed.name}` : '(无变卦)';
+                
+                let linesText = '';
+                c.main.lines.forEach(line => {
+                    // 构建卦画符号
+                    // 阴爻: ==  == (U+268B ⚋ 看起来太小，用ASCII模拟更通用)
+                    // 阳爻: ====== 
+                    const lineSymbol = line.isYang ? "====== " : "==  == ";
+                    const movingMark = line.isMoving ? (line.isYang ? "O" : "X") : " "; // 动爻标记
+                    const shiYing = line.shi ? "(世)" : (line.ying ? "(应)" : "    ");
+                    
+                    linesText += `${lineSymbol}${movingMark} ${line.beast} ${line.relation} ${line.branch}${line.wuxing} ${shiYing}\n`;
+                });
+
                 return `大师您好，我诚心求测。
-【问题】${question.value}
-【时间】${lunarInfo.value.dateStr} (空亡: ${lunarInfo.value.kongWang})
-【卦名】${c.main.name} ${changeText}
+
+【问题】
+${question.value}
+
+【时间】
+${lunarInfo.value.dateStr} (空亡: ${lunarInfo.value.kongWang})
+(公历: ${lunarInfo.value.solarTime})
+
+【卦象】
+本卦：${c.main.name} (${c.main.palace}${c.main.element})
+------------------------
+${linesText}------------------------
+变卦：${c.changed.name}
+
 请大师详批。`;
             };
 
             // 兼容性更强的复制函数
             const copyToClipboard = (text) => {
                 return new Promise((resolve, reject) => {
-                    // 1. 优先尝试现代 API (需要 HTTPS)
                     if (navigator.clipboard && window.isSecureContext) {
-                        navigator.clipboard.writeText(text).then(resolve).catch(() => {
-                            // 如果现代 API 失败（比如用户拒绝权限），尝试回退方案
-                            fallbackCopy(text, resolve, reject);
-                        });
+                        navigator.clipboard.writeText(text).then(resolve).catch(() => fallbackCopy(text, resolve, reject));
                     } else {
-                        // 2. 回退方案 (兼容 HTTP 和本地文件)
                         fallbackCopy(text, resolve, reject);
                     }
                 });
@@ -468,56 +489,34 @@
                 try {
                     const textArea = document.createElement("textarea");
                     textArea.value = text;
-                    
-                    // 确保 textarea 不可见但存在于 DOM 中
-                    textArea.style.position = "fixed";
-                    textArea.style.left = "-9999px";
-                    textArea.style.top = "0";
+                    textArea.style.position = "fixed"; textArea.style.left = "-9999px"; textArea.style.top = "0";
                     document.body.appendChild(textArea);
-                    
-                    textArea.focus();
-                    textArea.select();
-                    
+                    textArea.focus(); textArea.select();
                     const successful = document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    
-                    if (successful) resolve();
-                    else reject(new Error('复制指令失败'));
-                } catch (err) {
-                    reject(err);
-                }
+                    if (successful) resolve(); else reject(new Error('复制指令失败'));
+                } catch (err) { reject(err); }
             };
 
-            // WhatsApp: 直接跳转 URL Schema
             const contactWhatsApp = () => {
                 const url = `https://wa.me/${MY_WHATSAPP_NUMBER}?text=${encodeURIComponent(getChartText())}`;
                 window.open(url, '_blank');
             };
 
-            // WeChat: 复制文本 -> 尝试唤起
             const contactWeChat = async () => {
                 const text = getChartText();
                 copyToClipboard(text)
                     .then(() => {
-                        showToast('卦象已复制！正在打开微信...', 'success');
-                        setTimeout(() => {
-                            window.location.href = 'weixin://';
-                        }, 1000);
+                        showToast('详细卦象已复制！请粘贴给大师', 'success');
+                        setTimeout(() => window.location.href = 'weixin://', 1200);
                     })
-                    .catch(() => {
-                        showToast('复制失败，请手动截图', 'error');
-                    });
+                    .catch(() => showToast('复制失败，请手动截图', 'error'));
             };
 
-            // 仅复制微信号
             const copyWeChatIDOnly = () => {
                 copyToClipboard(MY_WECHAT_ID)
-                    .then(() => {
-                        showToast('微信号已复制！', 'success');
-                    })
-                    .catch(() => {
-                        showToast('复制失败', 'error');
-                    });
+                    .then(() => showToast('微信号已复制！', 'success'))
+                    .catch(() => showToast('复制失败', 'error'));
             }
 
             const resetAll = () => {
@@ -554,5 +553,4 @@
     }).mount('#app');
 </script>
 </body>
-
 </html>
