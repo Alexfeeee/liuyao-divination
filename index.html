@@ -16,9 +16,13 @@
     
     <!-- 4. Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- [新增] 引入运势数据库 -->
+    <script src="fortunes.js"></script>
     
     <!-- 5. 不蒜子 -->
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
     
     <!-- Fonts -->
     <style>
@@ -638,6 +642,62 @@
                                 </div>
                             </div>
                         </transition>
+                        
+                        <!-- 修复：八字核心解读卡片 -->
+                        <transition appear name="slide-up">
+                            <div v-if="baziChart && baziChart.interpretation" class="card-neo p-5 mt-4 relative overflow-hidden bg-white/80 border border-stone-100">
+                                <div class="flex items-center gap-2 mb-3 border-b border-stone-100 pb-2">
+                                    <i class="ph-fill ph-user-focus text-[#c02c38]"></i>
+                                    <span class="text-xs font-bold text-[#c02c38] tracking-widest uppercase font-sans">本命特质 · Day Master</span>
+                                </div>
+                                
+                                <div class="flex items-start gap-4">
+                                    <div class="w-12 h-12 rounded-full bg-[#c02c38] text-white flex items-center justify-center font-serif text-2xl shadow-md shrink-0 border-2 border-red-100">
+                                        {{ baziChart.interpretation.dm.name.substring(0,1) }}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-stone-800 font-serif text-lg">{{ baziChart.interpretation.dm.title }}</h4>
+                                        <p class="text-xs text-stone-500 mt-1 leading-relaxed font-serif text-justify">
+                                            {{ baziChart.interpretation.dm.desc }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </transition>
+
+                        <!-- [新增] 每日运势卡片 (扩充功能) -->
+                        <transition appear name="slide-up">
+                            <div class="card-neo p-5 mt-4 mb-2 border-stone-100 relative overflow-hidden">
+                                <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2 relative z-10">
+                                    <div class="flex items-center gap-2">
+                                        <i class="ph-fill ph-sparkle text-[#c02c38]"></i>
+                                        <span class="text-xs font-bold text-[#c02c38] tracking-widest uppercase font-sans">天机锦囊 · Daily Fortune</span>
+                                    </div>
+                                </div>
+                                
+                                <div v-if="dailyFortune" class="relative z-10">
+                                    <div class="text-lg font-bold text-stone-700 font-serif mb-3 leading-relaxed">{{ dailyFortune.text }}</div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span v-if="dailyFortune.category" class="text-[10px] px-2 py-1 bg-[#c02c38]/10 text-[#c02c38] rounded font-bold">{{ dailyFortune.category }}</span>
+                                        <span v-if="dailyFortune.lucky_number" class="text-[10px] px-2 py-1 bg-stone-100 text-stone-500 rounded font-mono">幸运数: {{ dailyFortune.lucky_number }}</span>
+                                        <span v-if="dailyFortune.lucky_color" class="text-[10px] px-2 py-1 bg-stone-100 text-stone-500 rounded font-mono">幸运色: {{ dailyFortune.lucky_color }}</span>
+                                        <span v-if="dailyFortune.five_element" class="text-[10px] px-2 py-1 bg-stone-100 text-stone-500 rounded font-mono">五行: {{ dailyFortune.five_element }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div v-else class="text-center py-2 relative z-10">
+                                    <p class="text-xs text-stone-400 mb-3 font-serif">心诚则灵，抽取今日专属运势指引</p>
+                                    <button @click="drawFortune" class="btn-primary px-6 py-2 text-sm font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 mx-auto">
+                                        <i class="ph-bold ph-hand-pointing"></i> 抽取运势
+                                    </button>
+                                </div>
+                                
+                                <!-- 装饰背景 -->
+                                <div class="absolute right-[-10px] bottom-[-10px] text-stone-100 text-8xl opacity-20 rotate-12 pointer-events-none">
+                                    <i class="ph-fill ph-scroll"></i>
+                                </div>
+                            </div>
+                        </transition>
                     </template>
 
                     <!-- CTA Section -->
@@ -759,7 +819,21 @@
             "火": ["巳", "午", "红色", "夏季", "5", "6"],
             "土": ["丑", "辰", "未", "戌", "黄色", "四季", "0"]
         },
-        "zodiac_signs": ["鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"]
+        "zodiac_signs": ["鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"],
+        "bazi_data": {
+            "day_masters": {
+                "甲": {"name": "甲木", "title": "参天大树", "desc": "性质刚健，虽有仁心但也容易固执。像大树一样，正直、向上，有领导欲望，不甘屈于人下。"},
+                "乙": {"name": "乙木", "title": "花草之木", "desc": "性格柔顺，适应力强，能屈能伸。像藤蔓一样，善于依附和合作，内心坚韧，反应灵敏。"},
+                "丙": {"name": "丙火", "title": "太阳之火", "desc": "热情开朗，光明磊落，但容易急躁。像太阳一样普照大地，不拘小节，喜好面子，富有感染力。"},
+                "丁": {"name": "丁火", "title": "灯烛之火", "desc": "温和细腻，心思缜密，具有牺牲精神。像烛光一样，外弱内强，洞察力强，有时多愁善感。"},
+                "戊": {"name": "戊土", "title": "城墙之土", "desc": "诚实厚重，沉稳镇静，但也容易迟钝。像高山一样，守信重诺，包容力强，喜静不喜动。"},
+                "己": {"name": "己土", "title": "田园之土", "desc": "内心细腻，多才多艺，做事有条理。像田园一样，孕育万物，包容性强，但有时会优柔寡断。"},
+                "庚": {"name": "庚金", "title": "刀剑之金", "desc": "刚毅果断，讲义气，好胜心强。像兵器一样，锐利直爽，不畏强权，但有时由于太直而伤人。"},
+                "辛": {"name": "辛金", "title": "珠宝之金", "desc": "温润秀气，重感情，虚荣心稍重。像首饰一样，外表光鲜，自尊心强，不仅有些挑剔，还很敏感。"},
+                "壬": {"name": "壬水", "title": "江河之水", "desc": "聪明理性，奔放不羁，善于把握机会。像大江一样，滔滔不绝，适应力极强，但也容易任性。"},
+                "癸": {"name": "癸水", "title": "雨露之水", "desc": "温柔内敛，心思细腻，想象力丰富。像雨露一样，滋润万物，性格平静，但内心深沉不易捉摸。"}
+            }
+        }
     };
 
     // --- 配置 ---
@@ -933,7 +1007,21 @@
             
             const lunarInfo = ref({});
             const toast = reactive({ show: false, message: '', type: 'info' });
+            // [新增] 运势功能状态
+            const dailyFortune = ref(null);
             
+            const drawFortune = () => {
+                // 检查 fortunes.js 是否已加载
+                if (typeof FORTUNES_DB !== 'undefined' && Array.isArray(FORTUNES_DB) && FORTUNES_DB.length > 0) {
+                    const rnd = Math.floor(Math.random() * FORTUNES_DB.length);
+                    dailyFortune.value = FORTUNES_DB[rnd];
+                    // 自动保存到历史记录（可选）
+                    // saveRecord('fortune', dailyFortune.value); 
+                } else {
+                    showToast('运势数据库未加载', 'error');
+                    console.warn('请确保 fortunes.js 已放在同一目录下并在 HTML 中引用。');
+                }
+            };
             // History State
             const historyOpen = ref(false);
             const historyList = ref([]);
@@ -1202,7 +1290,11 @@
                     dayun: processedDaYun,
                     currentAge: currentAge,
                     currentLiuNian: '',
-                    currentLiuRi: ''
+                    currentLiuRi: '',
+                    interpretation: {
+                        // eightChar.getDayGan() 获取日柱天干 (例如 "甲")
+                        dm: DB_DATA.bazi_data.day_masters[eightChar.getDayGan()] || {name: '未知', title:'-', desc:'暂无数据'}
+                    }
                 };
                 baziChart.value = chartData;
                 updateAnalysis();
@@ -1333,11 +1425,13 @@ ${t('msg_end')}`;
             return { 
                 mode, step, question, inputLines, isShaking, lastCoins, statusText, currentChart, lunarInfo, 
                 baziInput, baziChart, analysisDate, selectedDaYunIndex, toast, viewMode, currentLang,
+                // [新增] 导出运势相关变量
+                dailyFortune, drawFortune,
                 t, toggleLang, toggleViewMode, switchMode, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, translateTerm, getWuXingColor, getWuXingHex, canProceed, MY_WECHAT_ID,
                 updateAnalysis, selectDaYun,
                 historyOpen, historyList, loadRecord, deleteRecord, formatDateSimple, getCoinRotation,
-                // New logic:
                 matchHexagramData
+        
             };
         }
     }).mount('#app');
