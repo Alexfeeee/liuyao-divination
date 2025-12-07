@@ -22,40 +22,38 @@
     
     <!-- Google Fonts -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Ma+Shan+Zheng&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Ma+Shan+Zheng&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
         
         :root {
-            /* 调色板：新中式雅致 */
-            --bg-paper: #f9f7f2; /* 暖宣纸色 */
-            --ink-primary: #2b2b2b; /* 浓墨 */
-            --ink-secondary: #595959; /* 淡墨 */
-            --cinnabar: #c02c38; /* 故宫红 */
-            --cinnabar-light: #e6dcdccc; 
-            --gold: #d4af37; /* 鎏金 */
-            --jade: #10b981; /* 玉色 */
+            --bg-paper: #f9f7f2;
+            --ink-primary: #2b2b2b;
+            --cinnabar: #c02c38;
         }
 
         body {
-            font-family: 'Noto Serif SC', 'Playfair Display', serif;
-            background-color: #f0f2f5; /* 外部背景 */
+            font-family: 'Inter', 'Noto Serif SC', serif;
+            background-color: #f0f2f5;
             color: var(--ink-primary);
             -webkit-font-smoothing: antialiased;
+            overflow-y: scroll;
         }
 
-        /* APP 容器模拟 */
-        #app-frame {
+        /* 修复：将 app-frame 样式移到内部容器 */
+        .app-frame-style {
             background-color: var(--bg-paper);
             background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 16c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zm33.414-6l5.95-5.95L45.95.636 40 6.586 34.05.636 32.636 2.05 38.586 8l-5.95 5.95 1.414 1.414L40 9.414l5.95 5.95 1.414-1.414L41.414 8zM40 4.828l4.536 4.536L40 13.899l-4.536-4.536L40 4.828zM16 48c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM8 32c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm0-2c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zm33.414 32l5.95-5.95L45.95 48.636 40 54.586 34.05 48.636 32.636 50.05 38.586 56l-5.95 5.95 1.414 1.414L40 57.414l5.95 5.95 1.414-1.414L41.414 56zM40 52.828l4.536 4.536L40 61.899l-4.536-4.536L40 52.828z' fill='%23d6d3cd' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
             min-height: 100vh;
+            transition: max-width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+            margin: 0 auto;
         }
 
-        /* 隐藏滚动条 */
+        /* 模式切换类 */
+        .mode-mobile { max-width: 430px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
+        .mode-desktop { max-width: 800px; box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 60px rgba(0,0,0,0.1); }
+
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
-        /* === 组件样式 === */
-
-        /* 1. 阴阳爻 - 增加立体感 */
+        /* 组件样式 */
         .yang-stroke { 
             height: 10px; width: 100%; 
             background: linear-gradient(180deg, #d63031 0%, #c0392b 100%);
@@ -70,50 +68,25 @@
             box-shadow: 0 1px 2px rgba(45, 52, 54, 0.3);
         }
 
-        /* 2. 铜钱 - 拟物光泽 */
         .coin {
             width: 72px; height: 72px; border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #f9e79f, #d4ac0d);
-            box-shadow: 
-                inset 0 0 0 3px #b7950b,
-                inset 0 0 0 5px #fcf3cf,
-                0 4px 8px rgba(0,0,0,0.2),
-                0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: inset 0 0 0 3px #b7950b, inset 0 0 0 5px #fcf3cf, 0 4px 8px rgba(0,0,0,0.2);
             display: flex; align-items: center; justify-content: center;
             font-size: 26px; font-weight: bold; color: #7d6608;
-            position: relative;
-            border: 1px solid #9a7d0a;
+            position: relative; border: 1px solid #9a7d0a;
         }
-        .coin::before { /* 方孔内阴影 */
-            content: ''; position: absolute; width: 22px; height: 22px;
-            background: #e8e6e1;
-            border: 1px solid #b7950b;
-            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3);
-            z-index: 1;
-        }
+        .coin::before { content: ''; position: absolute; width: 22px; height: 22px; background: #e8e6e1; border: 1px solid #b7950b; z-index: 1; }
         .coin-text { position: absolute; z-index: 2; font-family: 'Ma Shan Zheng', cursive; text-shadow: 0 1px 0 rgba(255,255,255,0.6); }
 
-        /* 3. 动画 */
-        @keyframes toss {
-            0% { transform: translateY(0) rotateX(0) scale(1); }
-            50% { transform: translateY(-150px) rotateX(1080deg) scale(1.2); }
-            100% { transform: translateY(0) rotateX(2160deg) scale(1); }
-        }
-        .animate-toss { animation: toss 0.8s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
-
-        /* 4. 卡片风格 */
         .card-neo {
             background: rgba(255, 255, 255, 0.7);
             border: 1px solid rgba(255, 255, 255, 1);
-            box-shadow: 
-                0 4px 6px -1px rgba(0, 0, 0, 0.02), 
-                0 2px 4px -1px rgba(0, 0, 0, 0.02),
-                0 10px 15px -3px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
             backdrop-filter: blur(10px);
             border-radius: 16px;
         }
 
-        /* 5. 八字 - 四柱卡片 */
         .bazi-pillar-card {
             background: linear-gradient(to bottom, #ffffff, #fdfbf7);
             border: 1px solid #efebe4;
@@ -121,9 +94,11 @@
             border-radius: 12px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 12px 0;
+            transition: all 0.3s;
         }
+        /* Desktop模式下八字卡片稍微大一点 */
+        .mode-desktop .bazi-pillar-card { padding: 20px 0; }
 
-        /* 6. 大运 - 胶囊样式 */
         .dayun-capsule {
             min-width: 3.8rem;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -132,8 +107,8 @@
             font-size: 0.75rem;
             background: #ffffff;
             border: 1px solid #e5e5e5;
-            color: var(--ink-secondary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #595959;
+            transition: all 0.2s;
         }
         .dayun-selected {
             background: linear-gradient(135deg, #c02c38, #a9232e) !important;
@@ -142,465 +117,360 @@
             box-shadow: 0 4px 10px rgba(192, 44, 56, 0.3);
             transform: translateY(-2px);
         }
-        /* 强制选中状态下的子元素变白 */
         .dayun-selected * { color: white !important; }
         .dayun-current-border { border: 1.5px solid #c02c38; background-color: #fff5f5; }
 
-        /* 7. 按钮 - 墨色/朱砂 */
         .btn-primary {
-            background: var(--ink-primary);
-            color: #f7f5f0;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(43, 43, 43, 0.25);
+            background: #2b2b2b; color: #f7f5f0;
+            border-radius: 12px; box-shadow: 0 4px 12px rgba(43, 43, 43, 0.25);
             transition: all 0.2s;
         }
-        .btn-primary:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(43, 43, 43, 0.2); }
+        .btn-primary:active { transform: scale(0.98); }
         
-        .btn-action-wechat {
-            background: #07C160; color: white;
-            box-shadow: 0 4px 10px rgba(7, 193, 96, 0.3);
-        }
-        .btn-action-whatsapp {
-            background: #25D366; color: white;
-            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
-        }
+        .btn-action-wechat { background: #07C160; color: white; box-shadow: 0 4px 10px rgba(7, 193, 96, 0.3); }
+        .btn-action-whatsapp { background: #25D366; color: white; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
 
-        /* 8. Tab 切换器 */
         .tab-switcher {
-            background: #e8e6e1;
-            padding: 4px;
-            border-radius: 14px;
+            background: #e8e6e1; padding: 4px; border-radius: 14px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
-        .tab-item {
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            color: #787878;
-            font-weight: 500;
-        }
-        .tab-active {
-            background: white;
-            color: var(--cinnabar);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-            font-weight: 700;
-        }
+        .tab-item { border-radius: 10px; transition: all 0.3s ease; color: #787878; font-weight: 500; }
+        .tab-active { background: white; color: #c02c38; box-shadow: 0 2px 5px rgba(0,0,0,0.08); font-weight: 700; }
 
-        /* 五行颜色 */
-        .wx-wood { color: #2d6a4f; } 
-        .wx-fire { color: #d63031; } 
-        .wx-earth { color: #a0522d; } 
-        .wx-metal { color: #636e72; } 
-        .wx-water { color: #0984e3; } 
+        .wx-wood { color: #2d6a4f; } .wx-fire { color: #d63031; } .wx-earth { color: #a0522d; } 
+        .wx-metal { color: #636e72; } .wx-water { color: #0984e3; } 
 
-        /* 过渡动画 */
         .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
         .slide-up-enter-active { transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         .slide-up-enter-from { opacity: 0; transform: translateY(20px); }
         .slide-up-enter-to { opacity: 1; transform: translateY(0); }
-        
-        .toast-enter-active, .toast-leave-active { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .toast-enter-from, .toast-leave-to { transform: translateY(-100%) scale(0.9); opacity: 0; }
-        .toast-enter-to, .toast-leave-from { transform: translateY(0) scale(1); opacity: 1; }
+        .toast-enter-active, .toast-leave-active { transition: all 0.3s; }
+        .toast-enter-from, .toast-leave-to { transform: translateY(-100%); opacity: 0; }
+
+        @keyframes toss {
+            0% { transform: translateY(0) rotateX(0) scale(1); }
+            50% { transform: translateY(-150px) rotateX(1080deg) scale(1.2); }
+            100% { transform: translateY(0) rotateX(2160deg) scale(1); }
+        }
+        .animate-toss { animation: toss 0.8s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
     </style>
 </head>
-<body class="flex justify-center bg-stone-100">
+<body class="flex justify-center min-h-screen bg-stone-100">
 
-<div id="app" class="w-full max-w-[430px] relative shadow-2xl overflow-hidden flex flex-col" id="app-frame">
+<div id="app" class="w-full flex justify-center">
 
-    <!-- Toast -->
-    <transition name="toast">
-        <div v-if="toast.show" class="absolute top-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
-            <div class="bg-stone-900/90 backdrop-blur text-white px-4 py-2.5 rounded-full shadow-xl text-sm flex items-center gap-2 pointer-events-auto">
-                <i v-if="toast.type === 'success'" class="ph-fill ph-check-circle text-green-400 text-lg leading-none"></i>
-                <i v-else class="ph-fill ph-info text-blue-400 text-lg leading-none"></i>
-                <span class="font-medium">{{ toast.message }}</span>
-            </div>
-        </div>
-    </transition>
+    <!-- 修复：通过内部容器实现动态宽度 -->
+    <div :class="viewMode === 'mobile' ? 'mode-mobile' : 'mode-desktop'" class="app-frame-style flex flex-col relative w-full">
 
-    <!-- Header (Sticky & Blur) -->
-    <header class="h-14 flex items-center justify-between px-5 shrink-0 sticky top-0 z-40 bg-[#f9f7f2]/80 backdrop-blur-md border-b border-stone-200/60">
-        <div class="w-8"></div> <!-- Placeholder -->
-        <div class="flex flex-col items-center">
-            <h1 class="font-serif font-bold text-xl tracking-[0.15em] text-[#c02c38]" style="font-family: 'Ma Shan Zheng', cursive;">
-                {{ t('app_title') }}
-            </h1>
-        </div>
-        <button @click="toggleLang" class="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-stone-200 shadow-sm active:scale-90 transition text-stone-600">
-            <i class="ph ph-globe text-lg leading-none"></i>
-        </button>
-    </header>
-
-    <!-- Content -->
-    <main class="flex-1 overflow-y-auto overflow-x-hidden p-5 pb-24 relative scroll-smooth" ref="scrollContainer">
-        
-        <!-- Phase 1: 入口 -->
-        <transition name="fade" mode="out-in">
-            <div v-if="step === 1" key="step1" class="flex flex-col h-full">
-                
-                <!-- Tab Switcher -->
-                <div class="tab-switcher flex mb-8">
-                    <button @click="switchMode('liuyao')" 
-                        class="flex-1 py-2.5 text-sm tab-item"
-                        :class="mode === 'liuyao' ? 'tab-active' : ''">
-                        {{ t('tab_liuyao') }}
-                    </button>
-                    <button @click="switchMode('bazi')" 
-                        class="flex-1 py-2.5 text-sm tab-item"
-                        :class="mode === 'bazi' ? 'tab-active' : ''">
-                        {{ t('tab_bazi') }}
-                    </button>
+        <!-- Toast -->
+        <transition name="toast">
+            <div v-if="toast.show" class="absolute top-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
+                <div class="bg-stone-900/90 backdrop-blur text-white px-4 py-2.5 rounded-full shadow-xl text-sm flex items-center gap-2 pointer-events-auto">
+                    <i v-if="toast.type === 'success'" class="ph-fill ph-check-circle text-green-400 text-lg leading-none"></i>
+                    <i v-else class="ph-fill ph-info text-blue-400 text-lg leading-none"></i>
+                    <span class="font-medium">{{ toast.message }}</span>
                 </div>
+            </div>
+        </transition>
 
-                <!-- Title Section -->
-                <div class="text-center space-y-2 mb-8 mt-4">
-                    <div class="relative inline-block">
-                        <div class="absolute -inset-2 rounded-full bg-gradient-to-r from-red-100 to-orange-50 opacity-50 blur-lg"></div>
-                        <!-- 修复：移除 rotate-3，确保图标端正 -->
+        <!-- Header -->
+        <header class="h-16 flex items-center justify-between px-6 shrink-0 sticky top-0 z-40 bg-[#f9f7f2]/80 backdrop-blur-md border-b border-stone-200/60">
+            <!-- 视图切换按钮 -->
+            <button @click="toggleViewMode" class="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-stone-200 shadow-sm active:scale-90 transition text-stone-600 hover:text-[#c02c38]" :title="viewMode==='mobile' ? 'Switch to Desktop' : 'Switch to Mobile'">
+                <i v-if="viewMode === 'mobile'" class="ph-bold ph-desktop text-lg leading-none"></i>
+                <i v-else class="ph-bold ph-device-mobile text-lg leading-none"></i>
+            </button>
+            
+            <div class="flex flex-col items-center">
+                <h1 class="font-serif font-bold text-xl tracking-[0.15em] text-[#c02c38]" style="font-family: 'Ma Shan Zheng', cursive;">
+                    {{ t('app_title') }}
+                </h1>
+            </div>
+            
+            <!-- 语言切换按钮 -->
+            <button @click="toggleLang" class="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-stone-200 shadow-sm active:scale-90 transition text-stone-600 font-bold text-xs hover:text-[#c02c38]">
+                {{ currentLang === 'zh' ? 'EN' : '中' }}
+            </button>
+        </header>
+
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto overflow-x-hidden p-5 pb-24 relative scroll-smooth" ref="scrollContainer">
+            
+            <!-- Phase 1: 入口 -->
+            <transition name="fade" mode="out-in">
+                <div v-if="step === 1" key="step1" class="flex flex-col h-full max-w-lg mx-auto">
+                    
+                    <div class="tab-switcher flex mb-8">
+                        <button @click="switchMode('liuyao')" class="flex-1 py-2.5 text-sm tab-item" :class="mode === 'liuyao' ? 'tab-active' : ''">{{ t('tab_liuyao') }}</button>
+                        <button @click="switchMode('bazi')" class="flex-1 py-2.5 text-sm tab-item" :class="mode === 'bazi' ? 'tab-active' : ''">{{ t('tab_bazi') }}</button>
+                    </div>
+
+                    <div class="text-center space-y-2 mb-8 mt-4">
                         <div class="relative inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white border border-stone-100 shadow-sm mb-2">
                             <i v-if="mode==='liuyao'" class="ph-fill ph-hands-praying text-4xl text-[#c02c38] leading-none"></i>
                             <i v-else class="ph-fill ph-scroll text-4xl text-[#c02c38] leading-none"></i>
                         </div>
-                    </div>
-                    <h2 class="text-2xl font-bold text-stone-800 tracking-wide font-serif">{{ t(mode + '_title') }}</h2>
-                    <p class="text-stone-400 text-[10px] tracking-[0.2em] uppercase font-sans">{{ t(mode + '_subtitle') }}</p>
-                </div>
-
-                <div class="w-full space-y-6 flex-1">
-                    
-                    <!-- 六爻 Input -->
-                    <div v-if="mode === 'liuyao'" class="space-y-5">
-                        <div class="relative group">
-                            <textarea v-model="question" rows="4" :placeholder="t('step1_placeholder')" 
-                                class="w-full p-5 bg-white border border-stone-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c02c38]/20 transition shadow-sm text-stone-700 text-lg leading-relaxed placeholder:text-stone-300 resize-none"></textarea>
-                            <div class="absolute bottom-3 right-3 text-stone-300">
-                                <i class="ph-bold ph-pencil-simple-line text-lg leading-none"></i>
-                            </div>
-                        </div>
+                        <h2 class="text-2xl font-bold text-stone-800 tracking-wide font-serif">{{ t(mode + '_title') }}</h2>
+                        <p class="text-stone-400 text-[10px] tracking-[0.2em] uppercase font-sans">{{ t(mode + '_subtitle') }}</p>
                     </div>
 
-                    <!-- 八字 Input -->
-                    <div v-else class="space-y-5">
-                        <!-- Gender -->
-                        <div class="flex gap-4">
-                            <label class="flex-1 flex items-center justify-center gap-2 p-4 bg-white border border-stone-100 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-md"
-                                :class="baziInput.gender==='1'?'ring-2 ring-blue-100 bg-blue-50/30 shadow-sm':''">
-                                <input type="radio" v-model="baziInput.gender" value="1" class="hidden">
-                                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                                    <i class="ph-bold ph-gender-male text-lg leading-none"></i>
+                    <div class="w-full space-y-6 flex-1">
+                        <div v-if="mode === 'liuyao'" class="space-y-5">
+                            <div class="relative group">
+                                <textarea v-model="question" rows="4" :placeholder="t('step1_placeholder')" 
+                                    class="w-full p-5 bg-white border border-stone-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c02c38]/20 transition shadow-sm text-stone-700 text-lg leading-relaxed placeholder:text-stone-300 resize-none"></textarea>
+                                <div class="absolute bottom-3 right-3 text-stone-300">
+                                    <i class="ph-bold ph-pencil-simple-line text-lg leading-none"></i>
                                 </div>
-                                <span class="text-sm font-bold text-stone-700">{{ t('gender_male') }}</span>
-                            </label>
-                            <label class="flex-1 flex items-center justify-center gap-2 p-4 bg-white border border-stone-100 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-md"
-                                :class="baziInput.gender==='0'?'ring-2 ring-pink-100 bg-pink-50/30 shadow-sm':''">
-                                <input type="radio" v-model="baziInput.gender" value="0" class="hidden">
-                                <div class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center">
-                                    <i class="ph-bold ph-gender-female text-lg leading-none"></i>
-                                </div>
-                                <span class="text-sm font-bold text-stone-700">{{ t('gender_female') }}</span>
-                            </label>
+                            </div>
                         </div>
 
-                        <!-- Date/Time -->
-                        <div class="bg-white border border-stone-100 rounded-2xl p-5 space-y-4 shadow-sm">
-                            <div class="flex items-center justify-between border-b border-stone-100 pb-2">
-                                <label class="text-xs text-stone-400 font-bold tracking-wide uppercase">{{ t('label_birth_date') }}</label>
-                                <input type="date" v-model="baziInput.date" class="bg-transparent text-right font-mono font-bold text-stone-800 focus:outline-none text-base">
+                        <div v-else class="space-y-5">
+                            <div class="flex gap-4">
+                                <label class="flex-1 flex items-center justify-center gap-2 p-4 bg-white border border-stone-100 rounded-2xl cursor-pointer hover:shadow-md transition-all" :class="baziInput.gender==='1'?'ring-2 ring-blue-100 bg-blue-50/30':''">
+                                    <input type="radio" v-model="baziInput.gender" value="1" class="hidden">
+                                    <i class="ph-bold ph-gender-male text-lg text-blue-600 leading-none"></i>
+                                    <span class="text-sm font-bold text-stone-700">{{ t('gender_male') }}</span>
+                                </label>
+                                <label class="flex-1 flex items-center justify-center gap-2 p-4 bg-white border border-stone-100 rounded-2xl cursor-pointer hover:shadow-md transition-all" :class="baziInput.gender==='0'?'ring-2 ring-pink-100 bg-pink-50/30':''">
+                                    <input type="radio" v-model="baziInput.gender" value="0" class="hidden">
+                                    <i class="ph-bold ph-gender-female text-lg text-pink-600 leading-none"></i>
+                                    <span class="text-sm font-bold text-stone-700">{{ t('gender_female') }}</span>
+                                </label>
                             </div>
-                            <div class="flex items-center justify-between pt-1">
-                                <label class="text-xs text-stone-400 font-bold tracking-wide uppercase">{{ t('label_birth_time') }}</label>
-                                <input type="time" v-model="baziInput.time" class="bg-transparent text-right font-mono font-bold text-stone-800 focus:outline-none text-base">
+                            <div class="bg-white border border-stone-100 rounded-2xl p-5 space-y-4 shadow-sm">
+                                <div class="flex items-center justify-between border-b border-stone-100 pb-2">
+                                    <label class="text-xs text-stone-400 font-bold tracking-wide uppercase">{{ t('label_birth_date') }}</label>
+                                    <input type="date" v-model="baziInput.date" class="bg-transparent text-right font-mono font-bold text-stone-800 focus:outline-none text-base">
+                                </div>
+                                <div class="flex items-center justify-between pt-1">
+                                    <label class="text-xs text-stone-400 font-bold tracking-wide uppercase">{{ t('label_birth_time') }}</label>
+                                    <input type="time" v-model="baziInput.time" class="bg-transparent text-right font-mono font-bold text-stone-800 focus:outline-none text-base">
+                                </div>
                             </div>
+                            <input v-model="question" type="text" :placeholder="t('bazi_question_ph')" class="w-full p-4 bg-white border border-stone-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c02c38]/20 transition shadow-sm text-stone-700 placeholder:text-stone-300">
                         </div>
                         
-                        <input v-model="question" type="text" :placeholder="t('bazi_question_ph')" 
-                             class="w-full p-4 bg-white border border-stone-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#c02c38]/20 transition shadow-sm text-stone-700 placeholder:text-stone-300">
-                    </div>
-                    
-                    <!-- Start Button -->
-                    <button @click="nextStep" :disabled="!canProceed"
-                        class="w-full py-4 btn-primary text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4">
-                        <span>{{ t('btn_start') }}</span>
-                        <i class="ph-bold ph-arrow-right text-lg leading-none"></i>
-                    </button>
-                    
-                    <div class="text-center mt-6">
-                         <p class="text-[10px] text-stone-400 font-serif italic">{{ t('step1_footer') }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Phase 2: 摇卦 -->
-            <div v-else-if="step === 2 && mode === 'liuyao'" key="step2" class="h-full flex flex-col">
-                <div class="text-center mb-10 animate-fade-in">
-                    <div class="text-[10px] text-stone-400 uppercase tracking-widest mb-2 font-bold">{{ t('label_question') }}</div>
-                    <div class="font-serif font-bold text-xl text-stone-800 px-4 leading-relaxed line-clamp-2">{{ question }}</div>
-                    <div class="w-8 h-1 bg-[#c02c38] mx-auto mt-4 rounded-full opacity-80"></div>
-                </div>
-
-                <div class="flex-1 flex flex-col justify-center items-center space-y-12 -mt-12">
-                    <!-- Coins -->
-                    <div class="h-24 flex items-center justify-center gap-5 perspective-1000 w-full">
-                        <div v-for="c in 3" :key="c" class="coin transform transition-all" :class="{'animate-toss': isShaking}">
-                            <div class="coin-text" :class="lastCoins[c-1] === 3 ? 'top-[42%] left-[45%]' : 'top-[10%] left-[30%]'">
-                                <span v-if="!isShaking && lastCoins[c-1] === 2" class="text-sm scale-90 block">{{ t('coin_yang') }}</span>
-                                <i v-if="!isShaking && lastCoins[c-1] === 3" class="ph-fill ph-flower-lotus text-xs opacity-60 text-[#b7950b] leading-none"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="text-center space-y-8 w-full">
-                        <div class="relative inline-block">
-                             <button @click="shake" :disabled="isShaking"
-                                class="w-28 h-28 rounded-full bg-[#c02c38] text-white font-bold text-xl shadow-[0_10px_30px_rgba(192,44,56,0.4)] active:scale-90 transition-all flex flex-col items-center justify-center gap-1 z-10 relative overflow-hidden group border-4 border-[#e8e6e1]"
-                                :class="{'btn-shake': !isShaking && inputLines.length < 6}">
-                                <div class="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                <i class="ph-fill ph-hand-waving text-3xl mb-1 group-hover:rotate-12 transition-transform leading-none"></i>
-                                <span class="text-sm font-medium tracking-widest">
-                                    {{ inputLines.length < 6 ? t('btn_shake') : t('btn_finish') }}
-                                </span>
-                            </button>
-                        </div>
+                        <button @click="nextStep" :disabled="!canProceed" class="w-full py-4 btn-primary text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4">
+                            <span>{{ t('btn_start') }}</span>
+                            <i class="ph-bold ph-arrow-right text-lg leading-none"></i>
+                        </button>
                         
-                        <!-- Status & Progress -->
-                        <div class="space-y-4">
-                            <div class="font-mono text-[#c02c38] font-bold h-6 text-sm tracking-wider">{{ statusText }}</div>
-                            <div class="flex justify-center gap-2">
-                                <div v-for="i in 6" :key="i" class="w-2 h-2 rounded-full transition-all duration-500"
-                                        :class="inputLines.length >= i ? 'bg-[#c02c38] scale-125' : 'bg-stone-300 scale-100'"></div>
+                        <div class="text-center mt-6">
+                             <p class="text-[10px] text-stone-400 font-serif italic">{{ t('step1_footer') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2: 摇卦 -->
+                <div v-else-if="step === 2 && mode === 'liuyao'" key="step2" class="flex flex-col h-full justify-center max-w-lg mx-auto">
+                    <div class="text-center mb-10 animate-fade-in">
+                        <div class="text-[10px] text-stone-400 uppercase tracking-widest mb-2 font-bold">{{ t('label_question') }}</div>
+                        <div class="font-serif font-bold text-xl text-stone-800 px-4 leading-relaxed line-clamp-2">{{ question }}</div>
+                        <div class="w-8 h-1 bg-[#c02c38] mx-auto mt-4 rounded-full opacity-80"></div>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center space-y-12">
+                        <div class="h-24 flex items-center justify-center gap-5 perspective-1000 w-full">
+                            <div v-for="c in 3" :key="c" class="coin transform transition-all" :class="{'animate-toss': isShaking}">
+                                <div class="coin-text" :class="lastCoins[c-1] === 3 ? 'top-[42%] left-[45%]' : 'top-[10%] left-[30%]'">
+                                    <span v-if="!isShaking && lastCoins[c-1] === 2" class="text-sm scale-90 block">{{ t('coin_yang') }}</span>
+                                    <i v-if="!isShaking && lastCoins[c-1] === 3" class="ph-fill ph-flower-lotus text-xs opacity-60 text-[#b7950b] leading-none"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center space-y-8 w-full">
+                            <div class="relative inline-block">
+                                 <button @click="shake" :disabled="isShaking" class="w-28 h-28 rounded-full bg-[#c02c38] text-white font-bold text-xl shadow-[0_10px_30px_rgba(192,44,56,0.4)] active:scale-90 transition-all flex flex-col items-center justify-center gap-1 z-10 relative overflow-hidden group border-4 border-[#e8e6e1]" :class="{'btn-shake': !isShaking && inputLines.length < 6}">
+                                    <div class="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <i class="ph-fill ph-hand-waving text-3xl mb-1 group-hover:rotate-12 transition-transform leading-none"></i>
+                                    <span class="text-sm font-medium tracking-widest">{{ inputLines.length < 6 ? t('btn_shake') : t('btn_finish') }}</span>
+                                </button>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="font-mono text-[#c02c38] font-bold h-6 text-sm tracking-wider">{{ statusText }}</div>
+                                <div class="flex justify-center gap-2">
+                                    <div v-for="i in 6" :key="i" class="w-2 h-2 rounded-full transition-all duration-500" :class="inputLines.length >= i ? 'bg-[#c02c38] scale-125' : 'bg-stone-300 scale-100'"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Phase 3: 结果展示 -->
-            <div v-else-if="step === 3" key="step3" class="space-y-6 pb-10">
-                
-                <!-- Hexagram Result -->
-                <template v-if="mode === 'liuyao'">
-                    <div class="text-center pt-2">
-                        <div class="text-sm text-stone-600 font-bold font-mono tracking-wide bg-white px-3 py-1 rounded-full shadow-sm inline-block border border-stone-100">{{ lunarInfo.dateStr }}</div>
-                        <div class="text-[10px] text-stone-400 font-mono mt-2">{{ t('label_void') }}: {{ lunarInfo.kongWang }}</div>
-                    </div>
-
-                    <transition appear name="slide-up">
-                        <div class="card-neo p-5 relative overflow-hidden">
-                            <!-- Decorative Line -->
-                            <div class="absolute left-0 top-4 bottom-4 w-1 bg-[#c02c38] rounded-r-full"></div>
-                            
-                            <!-- Header -->
-                            <div class="flex justify-between items-end mb-6 px-2">
-                                <div>
-                                    <span class="text-[10px] text-stone-400 font-bold tracking-widest uppercase mb-1 block">Present Energy</span>
-                                    <h3 class="text-3xl font-bold text-[#c02c38] font-serif">{{ currentChart.main.name }}</h3>
-                                    <span class="text-[10px] text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md mt-2 inline-block font-medium">
-                                        {{ currentChart.main.palace }}{{ t('label_palace') }} · {{ translateTerm(currentChart.main.element) }}
-                                    </span>
-                                </div>
-                                <div class="text-5xl text-stone-100 font-serif absolute right-2 top-0 select-none -z-10" style="font-family: 'Ma Shan Zheng'">{{ t('label_main_bg') }}</div>
-                            </div>
-
-                            <!-- Lines -->
-                            <div class="space-y-3 relative z-10 px-1">
-                                <div v-for="line in currentChart.main.lines" :key="'main-'+line.index" class="flex items-center text-sm h-8 group">
-                                    <div class="w-10 text-stone-400 text-[10px] text-center scale-90 font-medium">{{ translateTerm(line.beast) }}</div>
-                                    <div class="w-10 font-bold text-xs text-center scale-90" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
-                                    <div class="w-12 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
-                                    <div class="flex-1 px-3 flex items-center">
-                                        <!-- 爻 -->
-                                        <div v-if="line.isYang" class="yang-stroke relative">
-                                            <div v-if="line.isMoving" class="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#c02c38] animate-pulse shadow-[0_0_5px_#c02c38]"></div>
-                                        </div>
-                                        <div v-else class="yin-stroke-wrapper relative">
-                                            <div class="yin-stroke"></div> <div class="yin-stroke"></div>
-                                            <div v-if="line.isMoving" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#c02c38] animate-pulse shadow-[0_0_5px_#c02c38]"></div>
-                                        </div>
-                                    </div>
-                                    <div class="w-6 text-[10px] font-bold text-center">
-                                        <span v-if="line.shi" class="text-white bg-[#c02c38] w-5 h-5 flex items-center justify-center rounded-md shadow-sm shadow-red-200">{{ t('label_shi') }}</span>
-                                        <span v-if="line.ying" class="text-[#c02c38] border border-[#c02c38] w-5 h-5 flex items-center justify-center rounded-md opacity-60">{{ t('label_ying') }}</span>
-                                    </div>
-                                </div>
-                            </div>
+                <!-- Phase 3: 结果展示 -->
+                <div v-else-if="step === 3" key="step3" class="space-y-6 pb-10 max-w-2xl mx-auto">
+                    
+                    <!-- Hexagram Result -->
+                    <template v-if="mode === 'liuyao'">
+                        <div class="text-center pt-2">
+                            <div class="text-sm text-stone-600 font-bold font-mono tracking-wide bg-white px-3 py-1 rounded-full shadow-sm inline-block border border-stone-100">{{ lunarInfo.dateStr }}</div>
+                            <div class="text-[10px] text-stone-400 font-mono mt-2">{{ t('label_void') }}: {{ lunarInfo.kongWang }}</div>
                         </div>
-                    </transition>
 
-                    <!-- Arrow -->
-                    <div v-if="currentChart.hasChange" class="flex justify-center -my-3 relative z-10 opacity-50">
-                        <div class="bg-stone-200 rounded-full p-1 border-4 border-[#f0f2f5]">
-                            <i class="ph-bold ph-arrow-down text-xl text-stone-500 leading-none"></i>
-                        </div>
-                    </div>
-
-                    <transition appear name="slide-up" v-if="currentChart.hasChange">
-                        <div class="card-neo p-5 relative overflow-hidden bg-[#ffffff]/60">
-                             <div class="absolute left-0 top-4 bottom-4 w-1 bg-stone-300 rounded-r-full"></div>
-                            <div class="flex justify-between items-end mb-6 px-2">
-                                <div>
-                                    <span class="text-[10px] text-stone-400 font-bold tracking-widest uppercase mb-1 block">Future Trend</span>
-                                    <h3 class="text-2xl font-bold text-stone-600 font-serif">{{ currentChart.changed.name }}</h3>
-                                </div>
-                                <div class="text-5xl text-stone-100 font-serif absolute right-2 top-0 select-none -z-10" style="font-family: 'Ma Shan Zheng'">{{ t('label_change_bg') }}</div>
-                            </div>
-                            <div class="space-y-3 relative z-10 px-1 opacity-80">
-                                <div v-for="line in currentChart.changed.lines" :key="'changed-'+line.index" class="flex items-center text-sm h-8">
-                                    <div class="w-10 text-stone-400 text-[10px] text-center scale-90">{{ translateTerm(line.beast) }}</div>
-                                    <div class="w-10 font-bold text-xs text-center scale-90" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
-                                    <div class="w-12 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
-                                    <div class="flex-1 px-3 flex items-center">
-                                        <div v-if="line.isYang" class="yang-stroke !bg-none bg-stone-400 !box-shadow-none"></div>
-                                        <div v-else class="yin-stroke-wrapper">
-                                            <div class="yin-stroke !bg-none bg-stone-400 !box-shadow-none"></div> <div class="yin-stroke !bg-none bg-stone-400 !box-shadow-none"></div>
-                                        </div>
-                                    </div>
-                                    <div class="w-6"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </transition>
-                </template>
-
-                <!-- BaZi Result -->
-                <template v-else>
-                    <transition appear name="slide-up">
-                        <div class="card-neo p-5 relative overflow-hidden">
-                            <!-- Top Info -->
-                            <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-100">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-1 h-4 bg-[#c02c38] rounded-full"></span>
-                                    <div class="text-xs font-bold text-stone-700">
-                                        {{ baziChart.gender === '1' ? t('bazi_male') : t('bazi_female') }}
-                                    </div>
-                                </div>
-                                <div class="text-[10px] text-stone-400 font-mono bg-stone-50 px-2 py-1 rounded">{{ baziChart.solarDate }}</div>
-                            </div>
-
-                            <!-- Pillars -->
-                            <div class="grid grid-cols-4 gap-2 mb-8">
-                                <div v-for="(col, idx) in ['year', 'month', 'day', 'hour']" :key="idx" class="text-center">
-                                     <div class="text-[9px] text-stone-400 uppercase tracking-widest mb-1">{{ t('col_'+col) }}</div>
-                                     <div class="bazi-pillar-card">
-                                         <div class="text-xl font-bold mb-1 font-serif" :class="getWuXingColor(baziChart.pillars[idx].stemWx)">{{ baziChart.pillars[idx].stem }}</div>
-                                         <div class="text-xl font-bold mb-2 font-serif" :class="getWuXingColor(baziChart.pillars[idx].branchWx)">{{ baziChart.pillars[idx].branch }}</div>
-                                         <div class="text-[9px] text-stone-400 font-mono">{{ t('wx_'+baziChart.pillars[idx].stemWx) }}</div>
-                                     </div>
-                                </div>
-                            </div>
-
-                            <!-- Luck Cycles -->
-                            <div class="bg-stone-50/80 rounded-xl p-4 border border-stone-100 mb-6">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="text-[10px] font-bold text-stone-500 uppercase tracking-wide flex items-center gap-1">
-                                        <i class="ph-fill ph-chart-line-up leading-none"></i> {{ t('label_luck_cycle') }}
-                                    </div>
-                                    <div class="text-[10px] text-[#c02c38] font-bold bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
-                                        {{ t('label_start_luck') }}: {{ baziChart.startAge }} {{ t('label_age') }}
-                                    </div>
-                                </div>
-                                
-                                <!-- DaYun Scroll -->
-                                <div class="flex overflow-x-auto gap-2 pb-2 mb-4 no-scrollbar">
-                                    <div v-for="(dy, idx) in baziChart.dayun" :key="idx" 
-                                         @click="selectDaYun(idx)"
-                                         class="dayun-capsule cursor-pointer shrink-0 relative"
-                                         :class="[
-                                            selectedDaYunIndex === idx ? 'dayun-selected' : '',
-                                            (dy.isCurrent && selectedDaYunIndex !== idx) ? 'dayun-current-border' : ''
-                                         ]">
-                                        <div class="font-bold text-sm font-serif">{{ dy.ganZhi }}</div>
-                                        <div class="text-[9px] opacity-70 mt-0.5">{{ dy.startAge }}{{ t('label_age_short') }}</div>
-                                        
-                                        <!-- Current Indicator Dot -->
-                                        <div v-if="dy.isCurrent && selectedDaYunIndex !== idx" class="absolute -top-1 -right-1 w-2 h-2 bg-[#c02c38] rounded-full"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Date Picker & Info -->
-                                <div class="bg-white rounded-xl p-3 shadow-sm border border-stone-100 flex items-center justify-between relative overflow-hidden">
-                                    <div class="flex flex-col relative z-10">
-                                        <span class="text-[9px] text-stone-400 mb-1 flex items-center gap-1">
-                                            <i class="ph-bold ph-calendar-blank leading-none"></i> {{ t('label_analysis_date') }}
+                        <transition appear name="slide-up">
+                            <div class="card-neo p-5 relative overflow-hidden">
+                                <div class="absolute left-0 top-4 bottom-4 w-1 bg-[#c02c38] rounded-r-full"></div>
+                                <div class="flex justify-between items-end mb-6 px-2">
+                                    <div>
+                                        <span class="text-[10px] text-stone-400 font-bold tracking-widest uppercase mb-1 block">Present Energy</span>
+                                        <h3 class="text-3xl font-bold text-[#c02c38] font-serif">{{ currentChart.main.name }}</h3>
+                                        <span class="text-[10px] text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md mt-2 inline-block font-medium">
+                                            {{ currentChart.main.palace }}{{ t('label_palace') }} · {{ translateTerm(currentChart.main.element) }}
                                         </span>
-                                        <input type="date" v-model="analysisDate" @change="updateAnalysis" 
-                                               class="bg-transparent font-mono text-xs font-bold text-stone-700 focus:outline-none p-0 m-0 border-b border-dashed border-stone-300 cursor-pointer">
                                     </div>
-                                    <div class="text-right z-10">
-                                        <div class="font-bold text-stone-800 text-sm font-serif">{{ baziChart.currentLiuNian }}</div>
-                                        <div class="font-bold text-stone-400 text-xs font-serif">{{ baziChart.currentLiuRi }}</div>
+                                    <div class="text-5xl text-stone-100 font-serif absolute right-2 top-0 select-none -z-10" style="font-family: 'Ma Shan Zheng'">{{ t('label_main_bg') }}</div>
+                                </div>
+
+                                <div class="space-y-3 relative z-10 px-1">
+                                    <div v-for="line in currentChart.main.lines" :key="'main-'+line.index" class="flex items-center text-sm h-8 group">
+                                        <!-- 修复：英文模式下六神和六亲列宽加倍，防止挤压 -->
+                                        <div :class="currentLang === 'en' ? 'w-16' : 'w-10'" class="text-stone-400 text-[10px] text-center scale-90 font-medium transition-all">{{ translateTerm(line.beast) }}</div>
+                                        <div :class="currentLang === 'en' ? 'w-16' : 'w-10'" class="font-bold text-xs text-center scale-90 transition-all" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
+                                        
+                                        <div class="w-12 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
+                                        <div class="flex-1 px-3 flex items-center">
+                                            <div v-if="line.isYang" class="yang-stroke relative"><div v-if="line.isMoving" class="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#c02c38] animate-pulse shadow-[0_0_5px_#c02c38]"></div></div>
+                                            <div v-else class="yin-stroke-wrapper relative"><div class="yin-stroke"></div> <div class="yin-stroke"></div><div v-if="line.isMoving" class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#c02c38] animate-pulse shadow-[0_0_5px_#c02c38]"></div></div>
+                                        </div>
+                                        <!-- 修复：英文模式下世应列宽加倍 -->
+                                        <div :class="currentLang === 'en' ? 'w-12' : 'w-6'" class="text-[10px] font-bold text-center transition-all">
+                                            <span v-if="line.shi" class="text-white bg-[#c02c38] flex items-center justify-center rounded-md shadow-sm shadow-red-200" :class="currentLang === 'en' ? 'px-2 py-0.5 w-auto' : 'w-5 h-5'">{{ t('label_shi') }}</span>
+                                            <span v-if="line.ying" class="text-[#c02c38] border border-[#c02c38] flex items-center justify-center rounded-md opacity-60" :class="currentLang === 'en' ? 'px-2 py-0.5 w-auto' : 'w-5 h-5'">{{ t('label_ying') }}</span>
+                                        </div>
                                     </div>
-                                    <!-- Decorative bg -->
-                                    <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-stone-50 to-transparent pointer-events-none"></div>
                                 </div>
                             </div>
+                        </transition>
 
-                            <!-- 5 Elements Bar -->
-                            <div class="bg-stone-50/50 rounded-xl p-3 border border-stone-100">
-                                <div class="text-[10px] text-stone-400 mb-2 uppercase tracking-wider font-bold">{{ t('label_5_elements') }}</div>
-                                <div class="flex h-2.5 rounded-full overflow-hidden w-full mb-2">
-                                    <div v-for="(count, wx) in baziChart.wuxingCount" :key="wx" 
-                                         :style="{width: (count/8*100) + '%', backgroundColor: getWuXingHex(wx)}"
-                                         class="h-full transition-all duration-500"></div>
+                        <div v-if="currentChart.hasChange" class="flex justify-center -my-3 relative z-10 opacity-50"><div class="bg-stone-200 rounded-full p-1 border-4 border-[#f0f2f5]"><i class="ph-bold ph-arrow-down text-xl text-stone-500 leading-none"></i></div></div>
+
+                        <transition appear name="slide-up" v-if="currentChart.hasChange">
+                            <div class="card-neo p-5 relative overflow-hidden bg-[#ffffff]/60">
+                                 <div class="absolute left-0 top-4 bottom-4 w-1 bg-stone-300 rounded-r-full"></div>
+                                <div class="flex justify-between items-end mb-6 px-2">
+                                    <div>
+                                        <span class="text-[10px] text-stone-400 font-bold tracking-widest uppercase mb-1 block">Future Trend</span>
+                                        <h3 class="text-2xl font-bold text-stone-600 font-serif">{{ currentChart.changed.name }}</h3>
+                                    </div>
+                                    <div class="text-5xl text-stone-100 font-serif absolute right-2 top-0 select-none -z-10" style="font-family: 'Ma Shan Zheng'">{{ t('label_change_bg') }}</div>
                                 </div>
-                                <div class="flex justify-between px-1">
-                                    <div v-for="(count, wx) in baziChart.wuxingCount" :key="'txt'+wx" class="flex flex-col items-center">
-                                        <span class="text-[10px] font-bold text-stone-600">{{count}}</span>
-                                        <span class="w-1.5 h-1.5 rounded-full mt-0.5" :style="{backgroundColor: getWuXingHex(wx)}"></span>
+                                <div class="space-y-3 relative z-10 px-1 opacity-80">
+                                    <div v-for="line in currentChart.changed.lines" :key="'changed-'+line.index" class="flex items-center text-sm h-8">
+                                        <div :class="currentLang === 'en' ? 'w-16' : 'w-10'" class="text-stone-400 text-[10px] text-center scale-90">{{ translateTerm(line.beast) }}</div>
+                                        <div :class="currentLang === 'en' ? 'w-16' : 'w-10'" class="font-bold text-xs text-center scale-90" :class="getRelationClass(line.relation)">{{ translateTerm(line.relation) }}</div>
+                                        <div class="w-12 font-mono text-[10px] text-stone-500 scale-90 origin-center text-center">{{ line.stem }}{{ line.branch }}{{ translateTerm(line.wuxing) }}</div>
+                                        <div class="flex-1 px-3 flex items-center">
+                                            <div v-if="line.isYang" class="yang-stroke !bg-none bg-stone-400 !box-shadow-none"></div>
+                                            <div v-else class="yin-stroke-wrapper"><div class="yin-stroke !bg-none bg-stone-400 !box-shadow-none"></div> <div class="yin-stroke !bg-none bg-stone-400 !box-shadow-none"></div></div>
+                                        </div>
+                                        <div :class="currentLang === 'en' ? 'w-12' : 'w-6'"></div>
                                     </div>
                                 </div>
+                            </div>
+                        </transition>
+                    </template>
+
+                    <!-- BaZi Result -->
+                    <template v-else>
+                        <transition appear name="slide-up">
+                            <div class="card-neo p-5 relative overflow-hidden">
+                                <div class="flex justify-between items-center mb-6 pb-3 border-b border-stone-100">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1 h-4 bg-[#c02c38] rounded-full"></span>
+                                        <div class="text-xs font-bold text-stone-700">{{ baziChart.gender === '1' ? t('bazi_male') : t('bazi_female') }}</div>
+                                    </div>
+                                    <div class="text-[10px] text-stone-400 font-mono bg-stone-50 px-2 py-1 rounded">{{ baziChart.solarDate }}</div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-2 mb-8">
+                                    <div v-for="(col, idx) in ['year', 'month', 'day', 'hour']" :key="idx" class="text-center">
+                                         <div class="text-[9px] text-stone-400 uppercase tracking-widest mb-1">{{ t('col_'+col) }}</div>
+                                         <div class="bazi-pillar-card">
+                                             <div class="text-xl font-bold mb-1 font-serif" :class="getWuXingColor(baziChart.pillars[idx].stemWx)">{{ baziChart.pillars[idx].stem }}</div>
+                                             <div class="text-xl font-bold mb-2 font-serif" :class="getWuXingColor(baziChart.pillars[idx].branchWx)">{{ baziChart.pillars[idx].branch }}</div>
+                                             <div class="text-[9px] text-stone-400 font-mono">{{ t('wx_'+baziChart.pillars[idx].stemWx) }}</div>
+                                         </div>
+                                    </div>
+                                </div>
+                                <div class="bg-stone-50/80 rounded-xl p-4 border border-stone-100 mb-6">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="text-[10px] font-bold text-stone-500 uppercase tracking-wide flex items-center gap-1"><i class="ph-fill ph-chart-line-up leading-none"></i> {{ t('label_luck_cycle') }}</div>
+                                        <div class="text-[10px] text-[#c02c38] font-bold bg-red-50 px-2 py-0.5 rounded-md border border-red-100">{{ t('label_start_luck') }}: {{ baziChart.startAge }} {{ t('label_age') }}</div>
+                                    </div>
+                                    <div class="flex overflow-x-auto gap-2 pb-2 mb-4 no-scrollbar">
+                                        <div v-for="(dy, idx) in baziChart.dayun" :key="idx" @click="selectDaYun(idx)" class="dayun-capsule cursor-pointer shrink-0 relative" :class="[selectedDaYunIndex === idx ? 'dayun-selected' : '', (dy.isCurrent && selectedDaYunIndex !== idx) ? 'dayun-current-border' : '']">
+                                            <div class="font-bold text-sm font-serif">{{ dy.ganZhi }}</div>
+                                            <div class="text-[9px] opacity-70 mt-0.5">{{ dy.startAge }}{{ t('label_age_short') }}</div>
+                                            <div v-if="dy.isCurrent && selectedDaYunIndex !== idx" class="absolute -top-1 -right-1 w-2 h-2 bg-[#c02c38] rounded-full"></div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-3 shadow-sm border border-stone-100 flex items-center justify-between relative overflow-hidden">
+                                        <div class="flex flex-col relative z-10">
+                                            <span class="text-[9px] text-stone-400 mb-1 flex items-center gap-1"><i class="ph-bold ph-calendar-blank leading-none"></i> {{ t('label_analysis_date') }}</span>
+                                            <input type="date" v-model="analysisDate" @change="updateAnalysis" class="bg-transparent font-mono text-xs font-bold text-stone-700 focus:outline-none p-0 m-0 border-b border-dashed border-stone-300 cursor-pointer">
+                                        </div>
+                                        <div class="text-right z-10">
+                                            <div class="font-bold text-stone-800 text-sm font-serif">{{ baziChart.currentLiuNian }}</div>
+                                            <div class="font-bold text-stone-400 text-xs font-serif">{{ baziChart.currentLiuRi }}</div>
+                                        </div>
+                                        <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-stone-50 to-transparent pointer-events-none"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-stone-50/50 rounded-xl p-3 border border-stone-100">
+                                    <div class="text-[10px] text-stone-400 mb-2 uppercase tracking-wider font-bold">{{ t('label_5_elements') }}</div>
+                                    <div class="flex h-2.5 rounded-full overflow-hidden w-full mb-2">
+                                        <div v-for="(count, wx) in baziChart.wuxingCount" :key="wx" :style="{width: (count/8*100) + '%', backgroundColor: getWuXingHex(wx)}" class="h-full transition-all duration-500"></div>
+                                    </div>
+                                    <div class="flex justify-between px-1">
+                                        <div v-for="(count, wx) in baziChart.wuxingCount" :key="'txt'+wx" class="flex flex-col items-center">
+                                            <span class="text-[10px] font-bold text-stone-600">{{count}}</span>
+                                            <span class="w-1.5 h-1.5 rounded-full mt-0.5" :style="{backgroundColor: getWuXingHex(wx)}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </transition>
+                    </template>
+
+                    <!-- CTA Section -->
+                    <transition appear name="slide-up">
+                        <div class="card-neo p-6 text-center space-y-5 mt-6 bg-gradient-to-b from-white to-[#f7f9f8] border-stone-100">
+                            <div class="relative z-10">
+                                <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600 shadow-sm">
+                                    <i class="ph-fill ph-chats-circle text-2xl leading-none"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-stone-800 mb-2 font-serif tracking-wide">{{ t('cta_title') }}</h3>
+                                <p class="text-xs text-stone-500 leading-relaxed px-2">{{ t('cta_desc_1') }}<br>{{ t('cta_desc_2') }}</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button @click="contactWhatsApp" class="btn-action-whatsapp w-full py-3 rounded-xl font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+                                    <i class="ph-bold ph-whatsapp-logo text-xl leading-none"></i>
+                                    <span>WhatsApp</span>
+                                </button>
+                                <button @click="contactWeChat" class="btn-action-wechat w-full py-3 rounded-xl font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+                                    <i class="ph-bold ph-wechat-logo text-xl leading-none"></i>
+                                    <span>{{ t('btn_wechat') }}</span>
+                                </button>
+                            </div>
+                            <div class="text-[10px] text-stone-400 bg-stone-50 py-2 px-4 rounded-full inline-flex items-center gap-2 border border-stone-100">
+                                <span>{{ t('label_wechat_id') }}: <span class="font-mono font-bold select-all text-stone-600">{{ MY_WECHAT_ID }}</span></span>
+                                <button @click="copyWeChatIDOnly" class="text-[#07C160] font-bold hover:underline">{{ t('btn_copy') }}</button>
                             </div>
                         </div>
                     </transition>
-                </template>
 
-                <!-- CTA Section -->
-                <transition appear name="slide-up">
-                    <div class="card-neo p-6 text-center space-y-5 mt-6 bg-gradient-to-b from-white to-[#f7f9f8] border-stone-100">
-                        <div class="relative z-10">
-                            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600 shadow-sm">
-                                <i class="ph-fill ph-chats-circle text-2xl leading-none"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-stone-800 mb-2 font-serif tracking-wide">
-                                {{ t('cta_title') }}
-                            </h3>
-                            <p class="text-xs text-stone-500 leading-relaxed px-2">
-                                {{ t('cta_desc_1') }}<br>
-                                {{ t('cta_desc_2') }}
-                            </p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <button @click="contactWhatsApp"
-                                class="btn-action-whatsapp w-full py-3 rounded-xl font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
-                                <i class="ph-bold ph-whatsapp-logo text-xl leading-none"></i>
-                                <span>WhatsApp</span>
-                            </button>
-                            <button @click="contactWeChat"
-                                class="btn-action-wechat w-full py-3 rounded-xl font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
-                                <i class="ph-bold ph-wechat-logo text-xl leading-none"></i>
-                                <span>{{ t('btn_wechat') }}</span>
-                            </button>
-                        </div>
-                        
-                        <div class="text-[10px] text-stone-400 bg-stone-50 py-2 px-4 rounded-full inline-flex items-center gap-2 border border-stone-100">
-                            <span>{{ t('label_wechat_id') }}: <span class="font-mono font-bold select-all text-stone-600">{{ MY_WECHAT_ID }}</span></span>
-                            <button @click="copyWeChatIDOnly" class="text-[#07C160] font-bold hover:underline">{{ t('btn_copy') }}</button>
-                        </div>
+                    <div class="text-center pt-4 pb-6">
+                        <button @click="resetAll" class="text-xs text-stone-400 hover:text-stone-600 flex items-center justify-center gap-1.5 mx-auto px-4 py-2 hover:bg-white hover:shadow-sm rounded-full transition-all">
+                            <i class="ph-bold ph-arrow-counter-clockwise leading-none"></i>
+                            <span>{{ t('btn_restart') }}</span>
+                        </button>
                     </div>
-                </transition>
 
-                <div class="text-center pt-4 pb-6">
-                    <button @click="resetAll" class="text-xs text-stone-400 hover:text-stone-600 flex items-center justify-center gap-1.5 mx-auto px-4 py-2 hover:bg-white hover:shadow-sm rounded-full transition-all">
-                        <i class="ph-bold ph-arrow-counter-clockwise leading-none"></i>
-                        <span>{{ t('btn_restart') }}</span>
-                    </button>
                 </div>
+            </transition>
 
-            </div>
-        </transition>
-
-    </main>
+        </main>
+    </div>
 </div>
 
 <script>
@@ -751,21 +621,20 @@
     createApp({
         setup() {
             const currentLang = ref('zh');
-            const mode = ref('liuyao'); // 'liuyao' or 'bazi'
+            const viewMode = ref('mobile'); // 'mobile' or 'desktop'
+            const mode = ref('liuyao');
             const step = ref(1); 
             const question = ref('');
             
-            // 六爻 State
             const inputLines = ref([]);
             const isShaking = ref(false);
             const lastCoins = ref([2,2,2]);
             const statusText = ref('');
             const currentChart = ref(null);
             
-            // 八字 State
             const baziInput = reactive({ gender: '1', date: '', time: '' });
             const baziChart = ref(null);
-            const analysisDate = ref(new Date().toISOString().split('T')[0]); // Default today
+            const analysisDate = ref(new Date().toISOString().split('T')[0]);
             const selectedDaYunIndex = ref(-1);
             
             const lunarInfo = ref({});
@@ -779,6 +648,14 @@
                 if(step.value === 2 && mode.value === 'liuyao' && !isShaking.value && inputLines.value.length === 0) {
                     statusText.value = currentLang.value === 'zh' ? '点击按钮摇卦' : 'Tap button to shake';
                 }
+            };
+            
+            const toggleViewMode = () => {
+                viewMode.value = viewMode.value === 'mobile' ? 'desktop' : 'mobile';
+                const msg = viewMode.value === 'mobile' 
+                    ? (currentLang.value === 'zh' ? '切换至手机视图' : 'Switched to Mobile View')
+                    : (currentLang.value === 'zh' ? '切换至桌面视图' : 'Switched to Desktop View');
+                showToast(msg, 'info');
             };
 
             const switchMode = (m) => {
@@ -872,7 +749,6 @@
 
             const calcBaZi = () => {
                 analysisDate.value = new Date().toISOString().split('T')[0];
-                
                 const dateParts = baziInput.date.split('-');
                 if (dateParts.length !== 3) return;
                 const timeParts = baziInput.time.split(':');
@@ -942,30 +818,23 @@
                     currentLiuNian: '',
                     currentLiuRi: ''
                 };
-                
                 updateAnalysis();
             };
 
             const updateAnalysis = () => {
                 if(!baziChart.value) return;
-                
                 const dateParts = analysisDate.value.split('-');
                 if (dateParts.length !== 3) return;
-
                 const y = parseInt(dateParts[0]);
                 const m = parseInt(dateParts[1]);
                 const d = parseInt(dateParts[2]);
-
                 const solar = Solar.fromYmd(y, m, d);
                 const lunar = solar.getLunar();
-                
                 baziChart.value.currentLiuNian = lunar.getYearInGanZhi() + (currentLang.value==='zh'?'年':'');
                 baziChart.value.currentLiuRi = lunar.getDayInGanZhi() + (currentLang.value==='zh'?'日':'');
             };
 
-            const selectDaYun = (index) => {
-                selectedDaYunIndex.value = index;
-            };
+            const selectDaYun = (index) => { selectedDaYunIndex.value = index; };
 
             const formatDate = (date) => date.toLocaleString('zh-CN', {hour12:false});
             const getWuXingColor = (wx) => `wx-${wx}`;
@@ -974,7 +843,6 @@
                 return map[wx];
             };
 
-            // Copy Text Logic
             const getCopyText = () => {
                 if(mode.value === 'liuyao') return getLiuYaoText();
                 return getBaZiText();
@@ -1005,7 +873,6 @@ ${t('msg_end')}`;
                 const gender = c.gender === '1' ? t('bazi_male') : t('bazi_female');
                 const p = c.pillars;
                 const qText = question.value ? `\n${t('msg_q')} ${question.value}` : '';
-                
                 const selDy = c.dayun[selectedDaYunIndex.value];
                 const dyText = selDy ? `${selDy.ganZhi} (${selDy.startAge}${t('label_age_short')})` : 'N/A';
 
@@ -1077,8 +944,8 @@ ${t('msg_end')}`;
 
             return { 
                 mode, step, question, inputLines, isShaking, lastCoins, statusText, currentChart, lunarInfo, 
-                baziInput, baziChart, analysisDate, selectedDaYunIndex, toast, 
-                t, toggleLang, switchMode, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, translateTerm, getWuXingColor, getWuXingHex, canProceed, MY_WECHAT_ID,
+                baziInput, baziChart, analysisDate, selectedDaYunIndex, toast, viewMode, currentLang,
+                t, toggleLang, toggleViewMode, switchMode, nextStep, shake, resetAll, contactWhatsApp, contactWeChat, copyWeChatIDOnly, getRelationClass, translateTerm, getWuXingColor, getWuXingHex, canProceed, MY_WECHAT_ID,
                 updateAnalysis, selectDaYun
             };
         }
